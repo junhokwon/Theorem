@@ -2,7 +2,7 @@
 
 : zsh쉘은 현재도 활발하게 개발되는 강력한 쉘
 
-
+!!!
 
 * 설치방법
 
@@ -64,6 +64,13 @@ git config --list명령 실행
 $ git help <verb>
 $ git <verb> --help
 ````
+
+* 터미널 파일 복사하기
+
+![](/Users/mac/projects/images/스크린샷 2017-05-15 오후 8.47.06.png)
+
+현재 디렉토리 : 
+cp 복사하고자하는 파일의 주소 현재위치(.)
 
 * ls - al : 전체목록
 * l - : 전체목록
@@ -263,9 +270,221 @@ nothing to commit, working directory clean
 : 위의 내용은 파일을 하나도 수정하지 않았다는 의미
 즉 tracked이나 modified인 상태인 파일이 없다는 의미이다.
 
+````
+$ echo 'My Project' > README
+$ git status
+On branch master
+Your branch is up-to-date with 'origin/master'.
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+
+    README
+
+nothing added to commit but untracked files present (use "git add" to track)
+
+````
+
+: README파일은 untracked 부분에 속해 있고(관리대상이아님)을 의미, **tracked 상태가 되기 전까지는 git은 절대 그 파일을 커밋하지 않는다.
+
+* 파일을 새로 추적하기(git add 파일명,tracked로 바꾸기)
+: git add명령으로 파일을 새로 추적할 수 있다.
+
+````
+$ git add README
+````
+: git status명령을 다시 실행하면 tracked상태이면서 커밋에 추가될 staged상태라는것을 의미 , 파일은 staging area에 저장되어 있다. changes to be committed는 즉 staged 상태라는것을 의미 한다.
+커밋하면 git add를 실행한 시점의 파일이 커밋되어
+저장소 히스토리에 남는다. git add 파일명을 통해 디렉토리에 있는 파일을 추적하고 관리하도록 한다.
+
+#modified 상태의 파일을 stage하기
+: 이미 tracked 상태인 파일을 수정하는 법은 파일을 수정한후 git status 명령을 실행하면 changes not staged for commit라는 상태가 되는데, 이것은 수정한 파일이 tracked상태이지만 아직 staged상태가 아니라는것이다.
+다시 git add명령을 통해 staged상태로 만들어주어야 한다.
+
+* 파일 상태를 확인하기
+
+````
+$ git status -s
+ M README
+MM Rakefile
+A  lib/git.rb
+M  lib/simplegit.rb
+?? LICENSE.txt
+````
+
+(1) 아직 추적하지 않은 새파일(untracked): ??'
+
+(2) staged상태로 추가한 파일 : 'A
+
+(3) 수정한파일 : M
+
+# 파일 무시하기
+
+: 어떤 파일은 git이 관리할 필요가 없다. 그럴경우
+.gitignore 파일을 만들고 그안에 무시할 파일 패턴을 적는다.
+
+````
+$ cat .gitignore //명령어
+''''
+''''
+*.[oa]
+*~ //내용
+````
+
+: 내용에서 첫번째 라인은 확장자가 ".o"나 ".a"인 파일을 git가 무시하라는 의미
+
+* .gitignore 파일의 예
+
+````
+# 확장자가 .a인 파일 무시
+*.a
+
+# 윗 라인에서 확장자가 .a인 파일은 무시하게 했지만 lib.a는 무시하지 않음
+!lib.a
+
+# 현재 디렉토리에 있는 TODO파일은 무시하고 subdir/TODO처럼 하위디렉토리에 있는 파일은 무시하지 않음
+/TODO
+
+# build/ 디렉토리에 있는 모든 파일은 무시
+build/
+
+# doc/notes.txt 파일은 무시하고 doc/server/arch.txt 파일은 무시하지 않음
+doc/*.txt
+
+# doc 디렉토리 아래의 모든 .pdf 파일을 무시
+doc/**/*.pdf
+```
+
+#staged와 unstaged 상태의 변경내용을 보기
+
+: 단순히 파일이 변경된 사실이 아닌 어떤 내용이 변경되었는지 살펴보려면 git diff 명령을 사용해야한다.
+
+(1) git diff명령 : 워킹 디렉토리와 staging area에 있는것을 비교한다. 그래서 수정하고 아직 stage하지 않은것을 보여준다.(unstaged인 상태인 것들만 보여준다)
+
+(2) git diff --staged : staging area에 넣은 파일의 변경 부분을 보고 싶을경우 
+
+#변경사항 커밋하기
+
+````
+$ git commit
+````
+
+* 메세지를 인라인으로 첨부하는 법
+
+````
+$ git commit -m "Story 182: Fix benchmarks for speed"
+````
+
+: git commit -m"컨텐츠 내용"
+
+````
+$ git commit -m "Story 182: Fix benchmarks for speed"
+[master 463dc4f] Story 182: Fix benchmarks for speed
+ 2 files changed, 2 insertions(+)
+ create mode 100644 README
+````
+
+(1) **master브랜치에 커밋했다.**
+(2) 체크섬은 463dc4f이다.
 
 
+#staging area 생략하기
 
+: staging area는 커밋할 파일을 정리한다는 점에서
+매우 유용하지만 필요하지 않을 때도 있다. 
+
+* git commit -a : git은 tracked 상태의 파일을 자동으로 staging area에 넣는다.
+
+````
+
+#파일 삭제하기
+
+(1) git에서 파일을 제거하려면 git rm명령으로 tracked상태의 파일을 삭제한후에(staging area)에서 삭제커밋해야한다.이 명령은 워킹 디렉토리에 있는 파일도 삭제하기때문에 실제로 파일도 지워진다.
+
+(2) staging area에서만 제거하고 워킹 디렉토리에 있는 파일은 지우지 않고 남겨둘 수 있다.(하드디스크에 있는 파일은 그대로 두고, git만 추적하지 않게 한다)
+
+''''
+$ git rm --cached README
+
+````
+
+````
+$ git rm log/\*.log
+
+````
+: 이 명령은 log안에 있는 모든 .log파일을 삭제한다.
+'\' 역슬래쉬는 파일명 확장기능이다.
+
+
+````
+$ git rm \*~
+
+````
+
+: 이 명령은 ~로 끝나는 파일을 모두 삭제한다.
+
+# 파일 이름 변경하기
+
+:git은 파일이름이 변경되었다는 별도의 정보를 저장하지 않는다.
+
+* git 이름변경하기전파일 이름변경한후파일
+
+````
+$ git mv file_from file_to
+
+````
+````
+$ mv README.md README
+$ git rm README.md
+$ git add README
+
+````
+: 위내용을 축약한것이 mv명령어이다. 파일이름명을 바꾸고 기존의 파일명의 파일을 지우고, 다시 staged상태로 파일을 만든다.
+
+#커밋 히스토리 조회하기
+
+: 새로 저장소를 만들어서 몇번 커밋을 했을수도 있고, 커밋히스토리가 있는 저장소를
+clone했을수도 있다. 저장소의 히스토리를 보고싶을때 
+
+* git log 가 있다.
+
+ ````
+ $ git log
+commit ca82a6dff817ec66f44342007202690a93763949
+Author: Scott Chacon <schacon@gee-mail.com>
+Date:   Mon Mar 17 21:52:11 2008 -0700
+
+    changed the version number
+
+commit 085bb3bcb608e1e8451d4b2432f8ecbe6306e7e7
+Author: Scott Chacon <schacon@gee-mail.com>
+Date:   Sat Mar 15 16:40:33 2008 -0700
+
+    removed unnecessary test
+
+commit a11bef06a3f659402fe7563abf99ad00de2209e6
+Author: Scott Chacon <schacon@gee-mail.com>
+Date:   Sat Mar 15 10:31:28 2008 -0700
+
+    first commit
+    
+````
+: git log 명령을 실행하면 저장소의 커밋 히스토리를 시간순으로 보여준다.
+가장 최근의 커밋이 먼저나오고 , 각 커밋의 sha-1체크섬,저자이름,저자이메일,커밋한날짜, 커밋메세지가 나온다.
+
+* 동료가 무엇을 커밋했는지 알려면  git log -p 명령을 할 경우 최근의 커밋한 두개의 파일만 보여준다.
+
+* git --stat 
+
+: --stat 옵션은 어떤 파일이 수정됐는지, 얼마나 많은 파일이 변경되었는지, 또 얼마나 많은 라인을 삭제했는지 요약정보를 다 보여준다.
+
+''''
+$ git log --pretty=oneline
+ca82a6dff817ec66f44342007202690a93763949 changed the version number
+085bb3bcb608e1e8451d4b2432f8ecbe6306e7e7 removed unnecessary test
+a11bef06a3f659402fe7563abf99ad00de2209e6 first commit
+
+````
+: --pretty옵션을 뒤에 oneline을 쓰면 한줄로 커밋된 결과물만 보여준다.
 
 
 
