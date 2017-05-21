@@ -209,9 +209,28 @@ if not false
 : print(f2) : none : f2는  함수를 직접 실행했을경우, print_call_func에   return값을 주지 않았기 때문에 none이 뜬다.
 
 
+* 딕셔너리에서 키를 반환하는 방법
+
+ : locals().get('champion')
+ 
+ * list는  id값이 바뀌지 않는다. 그내용물만 바꾸는것이다. 리스트 안의 각각의 내용에 메모리가 할당되어있기에 내용만 바뀌지 list id위치에 내용만 집어넣은것이다.
+
+ * 람다함수는 : 한줄짜리로 만들어진 함수
+ : 표현식이 return된다.
+ 
+ : lamdba 매개변수 : 표현식 (인자)
 
 
--
+* 클로저 
+
+: 같이 개발할 경우, 함수명도 같고 매개변수도 같을때 구별하는 방법
+
+파이썬 파일 하나는 하나의 모듈
+
+* 데코레이터 : 함수에서 가장 가까운 것부터 실행한다.
+
+* 제너레이터 : 파이썬의 시퀀스 데이터를 생성 : 
+
 
 #파이썬 본문
 
@@ -927,3 +946,771 @@ if not false
 :b를 나눈 나머지  0이 되니까 컴퓨터는  1을 true로 받기때문에 not false = true
 
 ```
+
+-
+#함수
+
+: 반복적인 작업을 하는 코드를 재사용이 가능하게 정의해 놓은것.
+
+```
+def 함수명(매개면수):
+	동작
+	
+```
+
+```
+def func():
+	print('call func')
+	
+#실행시 'call func'를 print하는 함수 정의
+
+>>> func
+>>> <function func at 0x10dabf378>
+
+# 함수 자체는 function객체를 참조하는 변수
+
+>>> func() #함수를 실행시키기 위해 ()사용
+
+```
+
+* 리턴값이 있는 함수의 정의
+
+```
+>>> def return_true():
+...   return True
+... 
+>>> return_true()
+True
+```
+
+: 함수의 결과로 Bool값을 갖는 데이터를 리턴하여 if문이나 while문의 조건으로 사용 가능하다.
+
+* 매개변수를 사용하는 함수 정의
+
+```
+>>> def print_arguments(something):
+...   print(something)
+... 
+>>> print_arguments('ABC')
+ABC
+```
+
+: 매개변수 : something, 실행인자 : ABC
+
+* 매개변수와 인자의 차이
+
+: 함수 내부에서 전달되어 온 변수는 매개변수라 불며,
+함수를 호출할 떄 전달하는 변수를 인자로 부른다.
+
+* **함수에서 리턴해주는 값이 없을 경우, 아무것도 없다는 뜻을 가진 `None` 객체를 얻는다.
+
+* 위치인자 : 매개변수의 순서대로 인자를 전달하여 사용
+
+```
+
+>>> def student(name, age, gender):
+...   return {'name': name, 'age': age, 'gender': gender}
+... 
+>>> student('hanyeong.lee', 30, 'male')
+{'name': 'hanyeong.lee', 'age': 30, 'gender': 'male'}
+
+```
+
+* 키워드 인자 : 매개변수의 이름을 지정하여 인자로 전달하여 사용하는 경우
+
+```
+>>> student(age=30, name='hanyeong.lee', gender='male')
+{'name': 'hanyeong.lee', 'age': 30, 'gender': 'male'}
+
+```
+
+: **위치인자와 키워드 인자를 동시에 쓴다면, 위치인자가 먼저 와야한다.**
+
+* 기본 매개변수값 지정
+
+: 인자가 제공되지 않을경우, 기본 매개변수로 사용할 값을 지정할 수 있다.
+
+```
+>>> def student(name, age, gender, cls='WPS'):
+...   return {'name': name, 'age': age, 'gender': gender, 'class': cls}
+
+```
+: 매개변수로 cls (키워드인자) : 'wps')를 추가했다.
+
+* **기본 매개변수값의 정의 시점 **
+
+: 기본 매개변수의 값은 실행될 때마다 계산되지 않고,
+**함수가 정의되는 시점에 계산되어 사용된다**
+
+```
+>>> def return_list(value, result=[]):
+...   result.append(value)
+...   return result
+... 
+>>> return_list('apple')
+['apple']
+>>> return_list('banana')
+['apple', 'banana']
+
+
+```
+
+: 이것을 보면, result라는 매개변수를 추가했고
+result라는 리스트에다 value리스트를 추가하고 result를 반환했을 경우
+
+: 정의도니 시점에 계산되어 사용되기에 apple이라는 실행인자를 넣고, 그다음 바나나라는 실행인자를 넣었지만 누적되어 사과가 포함되어 있다.
+
+* 함수가 실행되는 시점에 기본 매개변수값을 계산하기 이위해서는
+
+```
+
+>>> def return_list(value, result=None):
+...   if result is None:
+...     result = []
+...   result.append(value)
+...   return result
+... 
+>>> return_list('apple') #result실행인자가 없기에 none 
+['apple']
+>>> return_list('banana')
+['banana']
+
+```
+: **result 키워드인자에 None이라는 값을 주고, result값을 None으로 지정하여 함수가  실행될때마다 리스트를 비운다. 매개변수 result**
+
+* 실습
+
+```
+ 1 def return_list(value, result=None):
+  2     if result == None:
+  3         result = []
+  4     print('input value : {},result id : {}'.format(value, id(result)))
+  5     result.append(value)
+  6     return result
+  7 
+  
+  
+  # 기존에 result에 전달할 리스트 변수가 있던 경우
+  
+  
+  9 l =['apple']
+ 10 new_l = return_list('banana',l)
+ 11 print(new_l)
+ 12 
+ 13 new_l2 = return_list('melon',new_l)
+ 14 print(new_l2)
+ 
+ 
+ # return_list함수에 result매개변수로 사용할 list변수를 전달하지 않은 경우
+ 
+ 16 l2 = return_list('민아')
+ 17 print(l2)
+ 18 
+ 19 l3 = return_list('혜리')
+ 20 print(l3)
+ 21 
+
+
+```
+
+
+* 위치인자 묶음
+
+:함수에 위치인자로 주어진 변수의 묶음은 `*매개변수명` 으로 사용할 수 있다.
+
+```
+def print_args(*args):
+  print(args)
+```
+
+* 키워드인자 묶음
+
+: 함수에 키워드인자로 주어진 변수의 묶음은 `**매개변수명**으로 사용할 수 있다. `**kwargs**
+```
+def print_kwargs(**kwargs):
+  print(kwargs)
+  ```
+  
+* 실습
+
+```
+
+
+  1 def print_args(*args, **kwargs):
+  2     print(args)
+  3     print(kwargs)
+  4     
+  5     
+  6 def print_kwargs(**kwargs):
+  7     print(kwargs)
+  8     
+  9 print_args('python', 'ruby','java', language='python', ide ='pycharm')
+ 10 print('')
+ 11 
+
+* 실행결과
+
+('python', 'ruby', 'java')
+{'ide': 'pycharm', 'language': 'python'}
+
+
+```
+  
+* **함수로 인자를 전달**
+
+파이썬에서는 함수 역시 다른 객체와 동등하게 취급하므로, 함수에서 인자로 함수를 전달,실행,리턴하는 형태로 사용할 수 있다.
+
+* 'call func'를 출력하는 함수를 정희하고, 함수를 인자로 받아 실행하는 함수를 정의하여 첫 번째 정의한 함수를 인자로 전달해 실행해보자 
+
+```
+1 def call_func():
+  2         print('call func')
+  3         
+  4         
+  5 f1 = call_func
+  6 
+  7 print(f1)
+~               
+```
+
+: call_func라른 함수를 f1변수에 할당했다.
+함수를 인자로 사용하여 print함수를 통하여 출력
+
+* 내부 함수 
+
+: 함수안에서 또다른 함수를 정의해 사용
+
+* 실습
+
+
+
+1. msg라는 매개변수를 갖는 함수를 정의, 해당 함수는 print(msg)를 실행하는 또 다른 함수를 생성해서 리턴해준다. 1의 함수명은return_print_function으로 작성
+
+2. execute_another_function에서 위의 함수를 호출해서 만든 함수를 변수 f1에 할당 후, f1변수를 인자로 전달하여 실행
+
+```
+def print_call_func():
+	print('call func')
+	
+def execute_another_function(another_function):
+	another_function()
+	
+	
+	
+def return_print_function(msg):
+    # 이 내부에서 새로운 함수를 생성 (def 어떤함수)하고
+    # 아래에서 리턴해주셔야합니다
+    def return_function():
+        print(msg)
+
+    return return_function
+    # 내부함수자체를 리턴
+
+
+print(return_print_function('test'))
+
+
+f1 = return_print_function('이걸출력해주세요')
+
+2번의 execte_another_function(f1)으로 실행
+
+execute_another_function(f1)
+	
+```
+
+#스코프(영역)
+
+: 파이썬에서는 코드 작성시, 각 함수마다 독립적인(스코프(영역))을 가진다.
+
+```
+champion = 'Lux' # 전역영역(global scope)
+
+def show_global_champion():
+	# global_champion함수의 내부영역 local 	scope라고 한다.
+	
+    print('show_global_champion : {}'.format(champion))
+
+show_global_champion()
+print('print champion : {}'.format(champion))
+
+```
+```
+champion = 'Lux'
+
+def show_global_champion():
+    print('show_global_champion : {}'.format(champion))
+
+def change_global_champion():
+    print('before change_global_champion : {}'.format(champion))
+    champion = 'Ahri'
+    print('after change_global_champion : {}'.format(champion))
+
+show_global_champion()
+change_global_champion()
+```
+
+: 결과를 실행해보면 change_global_champion 함수에서 오류가 발생하는것을 알 수 있다.
+
+첫번째 코드에서는 champion의 변수가 함수의 로컬스코프에 존재하지 않기 때문에 글로벌 영역의 'lux'와 같은 해당변수를 찾아 출력된 반면에 change_global_champion은 로컬스코프에 또다른 변수가 존재하기 때문에, 할당하기 전인 변수를 사용한것을 판단하여 프로그램에서 오류를 발생시킨다.
+
+: 각 영역에 해당하는 데이터는 `locals()` 함수를 사용해 확인 할 수 있으며, 전역 영역의 데이터들은 globals()함수를 사용해 확인 할 수 있다.
+
+* 스코핑 룰
+
+: 스코프는 지역, 전역외에도 내장(bulit-in)영역이 존재하며, 내장영역이 가장바깥, 그 내부에 전역, 그내부에 지역영역으로 분리도니다.
+
+: 분리된 영역에서 외부영역에서는 내부영역의 데이터를 사용할 수 없지만, 내부 영역에서는 자신의 외부 영역에 있는 데이터를 참조할 수 있다.
+
+* 내장함수와 내장영역
+
+: `print`와 `dict`등 지정하지 않고, 사용했던 내장함수들은 위 스코핑 룰의 내장 스코프에 존재하는 함수들이다. 전역스코프의 `__builtin__` 변수에 할당되어 있으며, 전역 스코프에서는 해당 변수의 내부를 참조 할 수 있도록  파이썬이 시작될때 처리된다.
+
+: 확인시  `dir`함수를 사용하며, `dir`함수는 해당 객체가 사용가능한 속성 및 함수들을 리스트 형태로 나타내준다.
+
+* 로컬스코프에서 글로벌 스코프의 변수를 사용
+
+```
+champion = 'Lux'
+
+def change_global_champion():
+
+    global champion
+    # global영역의 것을 쓰겠다고 선언!!!
+    
+    champion = 'Ahri'
+    print('after change_global_champion : {}'.format(champion))
+
+change_global_champion()
+print('print global champion : {}'.format(champion))
+```
+
+: 이 경우, `change_global_champion` 함수는  champion 변수에 새로운 값을 대입한다. 만약 로컬 스코프에서 글로벌 스코프의 변수를 변경해야 한다면, 해당 변수가 로컬스코프에 생성되는 것이 아닌 **글로벌 영역에 이미 존재하는 값을 사용함을 명시해주어야 한다.**
+
+
+* 내부함수의 로컬스코프(nonlocal)
+
+```
+
+champion = 'Lux'
+
+def local1():
+    champion = 'Ahri'
+    print('local1 locals() : {}'.format(locals()))
+
+    def local2():
+        nonlocal champion
+        champion = 'Ezreal'
+        print('local2 locals() : {}'.format(locals()))
+    local2()
+    print('local1 locals() : {}'.format(locals()))
+
+print('global locals() : {}'.format(locals()))
+local1()
+
+```
+: 로컬스코프 내부에는 또 다른 로컬 스코프가 존재할 수 있다. 전역 스코프가 아닌, **자신의 바로 바깥 영역의 로컬스코프(자신보다 한단계 위의 로컬스코프)의 데이터를 참조한다.**
+
+* global키워드와 인자전달의 차이
+
+(1) 인자로 전달한 경우
+
+```
+global_level = 100
+def level_add(value):
+    value += 30
+    print(value)
+
+level_add(global_level)
+print(global_level)
+
+>>>130
+>>>100
+
+```
+
+: 인자로 전달할 경우, 같은 객체를 가르키는 글로벌 변수 global_level과 매개변수 value가 존재한다. 이때 매개변수인 value의 값을 변경하는 것은 global_level에 영향을 주지 않는다.
+
+(2) global키워드를 사용한 경우
+
+```
+global_level = 100
+def level_add():
+    global global_level
+    global_level += 30
+    print(global_level)
+
+level_add()
+print(global_level)
+
+>>> 130
+>>> 130
+```
+* 실습(리스트 변수가 할당될 경우)
+
+
+```
+def return_list(value, result=None):
+    if result == None:
+        result = []
+    print('input value: {}, result id: {}'.format(value, id(result)))
+    result.append(value)
+    return result
+
+
+# 기존에 result에 전달할 리스트 변수가 있던 경우
+l = ['apple']
+new_l = return_list('banana', l)
+print(new_l)
+
+new_l2 = return_list('melon', new_l)
+print(new_l2)
+
+# return_list함수에 result매개변수로 사용할 list변수를 전달하지 않은 경우
+l2 = return_list('민아')
+print(l2)
+
+l3 = return_list('혜리')
+print(l3)
+
+```
+![](/Users/mac/projects/images/스크린샷 2017-05-21 오후 12.53.02.png)
+
+: result매개변수로 사용할 list변수를 주지 않았을경우 result ==None이면 result = []으로 처리했기에 리셋될때마다 id값도 달라지고 내용도 reset된다.
+
+* 람다함수
+
+: 한 줄 짜리 표현식으로 이루어지며, 반복문이나 조건문등이 제어문등은 포함될 수 없다. 또한, 함수이지만 정의/호출이 나누어져 있지 않으며, 표현식 자체가 바로 호출된다.
+
+`lambda <매개변수> : <표현식>`
+
+```
+import string
+>>> for char in string.ascii_lowercase:
+...   if char > 'i':
+...     print(char.upper())
+...   else:
+...     print(char)
+```
+
+
+```
+for char i string.ascii_lowercase:
+	print((lambda x : x.upper() if x > 'i' else x)(char))
+
+```
+* 클로져(Closure)
+
+: 함수가 정의된 환경을 말하며, 파이썬 파일이 여러개인 경우 각 파일은 하나의 `모듈` 역할을 하고 각 모듈은 독립적인 환경을 가진다. 각 독립된 환경은 각자의 영영을 전역영역으로 사용한다.
+
+closure/module_a.py
+```
+level = 100
+def print_level():
+    print(level)
+    
+```
+closure/module_p.py
+```
+import module_a
+level = 50
+def print_level():
+    print(level)
+    
+module_a.print_level()
+print_level()
+```
+: python module_b.py로 module_b를 실행한다. 함수의 전역 영역은 해당 함수가 정의된 모듈 전역영역으로, 전역변수는 모듈의 영역에 영향을 받는다.
+
+* 내부함수의 클로져
+
+```
+>>> level = 0
+>>> def outter():
+...   level = 50
+...   def inner():
+...     nonlocal level
+...     level += 3
+...     print(level)
+...   return inner
+...
+>>> func = outter()
+```
+
+: 위의 경우, outter 함수는  inner함수를 반환하여 결과를 func 전역변수에 할당한다. inner함수의 호출 결과가 아닌 함수 자체를 반환하기 때문에 func변수는 실행할 수 있는 함수 객체이다. 이 때 inner함수가 사용하는 level변수는 nonlocal키워드를 사용했기 때문에 outter에 새로 정의된 지역변수 level을 사용한다. 반복적으로 func함수를 실행하면, inner의 외부(outter)에 존재하는 level변수의 값을 증가시키고 print 시키기때문에 값은 계속해서 증가한다.
+
+* func2를 만든다면??
+
+```
+level = 0
+
+def outer():
+    level = 50
+    
+    def inner():
+        nonlocal level
+        level += 3
+        print(level)
+    return inner
+
+f = outer()
+f()
+f()
+f()
+
+f2 = outer()
+f2()
+f2()
+
+print(level)
+
+>>>53
+>>>56
+>>>59
+>>>53
+>>>56
+>>>0
+
+```
+
+: 이경우는 func2라는 변수에 outer()함수를 할당했더니 처음부터 시작해서 누적된것을 볼 수 있다. nonlocal level을 썼기에 outer()함수의 내부 로컬영역에 있는 level = 50이 값부터 바뀌기에 global 영역에 있는 level은 0이 된다.
+
+
+* 데코레이터(decorator)
+
+함수를 받아 다른 함수를 반환하는 함수, 예를 들면, 기존에 존재하던 함수를 바꾸지 않고, 전달된 인자를 보기위한 디버깅 `print` 함수를 추가한다던가 하는 기능을 할 수 있다.
+
+(1) 기능을 추가할 함수를 인자로 받음
+(2) 데코레이터 자체에 추가할 기능을 함수로 정의
+(3) 인자로 받은 함수를 데코레이터 내부에서 적절히 호출
+(4) 위 2가지를 행하는 내부함수를 변환
+
+* 실습
+
+```
+def double(f):
+    def inner_f(*args, **kwargs):
+        result = f(*args, **kwargs)
+        return result * 2
+    return inner_f
+
+
+def plus(f):
+    def inner_f(*args, **kwargs):
+        result = f(*args, **kwargs)
+        return result + 10
+    return inner_f
+
+
+@double
+@plus
+def multi(n):
+    '제곱을 반환'
+    return n * n
+
+result = multi(3)
+print(result)
+
+>>> 38
+```
+
+: multi(n) 함수에 가까운 plus함수 내부를 돌고 그후에 double함수를 돈다. **또한 데코레이터는 여러개를 가질 수 있으며, 함수에서 가장 가까운 것 부터 실행한다.**
+
+* 제너레이터(generator)
+
+: 제너레이터는 함수의 파이썬 시퀀스데이터를 사용하는데 생성, 시퀀스전체 데이터를 가지고 있는것이 아닌, 어떠한 루틴만을 가지고 있는것이다. 메모리를 적게 쓸 수 있다. 제너레이터는 마지막에 호출한 위치(항목)을 기억하고 있으며, 한 번 순회할 때 마다 그 다음값을 반환한다. 제너레이터는 함수를 통해 만들어지며, 함수 내부의 반복문에서  `yield`키워드를 사용하면 제너레이터가 된다.
+
+```
+def range_gen(num):
+    i = 0
+    while i < num:
+        yield i
+        i += 1
+
+        
+gen = range_gen(10)
+print(gen)
+print(type(gen))
+
+# gen.__next__()
+# gen.__next__()
+# gen.__next__()
+# gen.__next__()
+# gen.__next__()
+
+# for item in gen:
+#     print(item)
+    
+i = 0
+while i < 8:
+    print(gen.__next__())
+    i += 1
+    
+```
+: 함수 내부에 `yield`키워드가 사용되어, 제너레이터 함수가 되었으며, 함수를 실행하면 제너레이터 객체를 반환한다. `yield`부분에서 멈춘 제너레이터 객체를 순회하기 위해서는  `__next__()`함수를 실행해준다.
+
+
+* 실습
+
+(1) 한개 또는 두개의 숫자 인자를 전달받아, 하나가 오면 제곱, 두개의 숫자를 받으면 두수의 곱을 반환해주는 함수를 정의하고 사용
+
+```
+(1)
+
+def number(args1,args2 =None):
+	if args2:
+		return args1 * args2
+		
+	if args1:
+		return args1 * args1
+		
+result = number(1)
+print(result)
+result1 = number(1,3)
+print(result1)
+
+>>> 1
+>>> 3
+(2)
+
+def number(*args):
+	if len(args) > 1:
+		return args[0] * args[1]
+		
+	elif len(args) == 1:
+		return args[0] * args[0]
+	else:
+		raise Exception('raise arguments')
+		
+result = number(2)	
+print(result)
+result1 = number(3,4)
+print(result1)
+
+>>> 4
+>>> 12
+```
+
+(2) 위치인자 묶음을 매개변수로 가지며, 위치인자가 몇개 전달되었는지를 print하고 개수를 리턴해주는 함수를 정의하고 사용
+
+```
+ def number(*args):
+     count = len(args)
+     print('위치인자가 {}개 전달되었습니다.'.format(len(args))
+     return count
+     
+```
+
+(3) 람다함수와 리스트 컴프리헨션을 사용해 한 줄로 구구단의 결과를 갖는 리스트를 생성해본다.
+
+```
+(1)
+
+list = [(lambda a,b : '{}*{}={}'.format(a,b,a*b)(x,y) for x in range(2,10) for y in range(1,10)
+
+
+(2) 
+list = []
+for x in range(2,10);
+	for y in range(1,10):
+		list2.append((lambda a,b : '{}*{} ={}'.format(a,b,a*b))(x,y))
+		
+```
+
+#알고리즘 실습
+
+* 순차검색
+
+(1) 문자열과 키 문자 1개를 받는 함수 구현
+(2) while문을 이용하여, 문자열에서 키문자가 존재하는 index위치를 검사 후 해당 index를 리턴
+(3) 찾지 못했을 경우 0을 리턴
+
+```
+(1) 
+
+def search(source, key):
+	index = 0
+	while index < len(source)
+		if key == sourse[index]
+			return index
+		index += 1
+	return -1
+
+: while문을 사용하는 경우, index 순서를 0으로 할당한후 한개씩 증가시키며, source리스트의 길이가 초과되지 않는다면, 우리가 찾고자 하는 key와 source의 리스트[순서]의 값과 같으면 index 순서를 반환하고 아니면 -1로 리턴해라. while문은 가정이 참일경우 실행된다.
+
+(2) 
+
+def search1(source,key):
+	index = 0
+	for index in range(len(source):
+		if key == source[index]:
+			return index
+		index += 1
+	return -1
+	
+: for 문을 사용할 경우, 리스트의 길이 범위에서 index가 있고, key가 리스트의 어떤순서의 값과 같다면 index(순서) 반환
+	
+(3)
+
+def search2(source,key):
+	for index,char in enumerate(source)
+	if char == key:
+		return index
+	return -1
+	
+list = 'lux, the lady of luminosity'
+r1 = search(source,'x')
+r2 = search1(source,'x')
+r3 = search2(source,'x')
+
+: 3번의 경우, 순서와 문자 2가지 변수를 enumerate함수를 사용하였다(순서와 문자가 같이 for문을 돌기에, index(순서)에 해당하는 문자가 같이 묶여있다 그러므로  char가 찾고자하는 key와 같다면 index(순서)를 반환하게 만들수 있다.
+```
+
+* 선택정렬(selection sort)
+
+(1) [9, 1, 6, 8, 4, 3, 2, 0, 5, 7] 를 정렬한다.
+
+(2) 정렬과정
+ a. 리스트중 최소값을 검색
+ b. 그 값을 맨 앞의 값과 교체(패스)
+ c. 나머지 리스트에 위의 과정을 반복
+ 
+ (3) 해결방법
+ a. 알고리즘 진행과정 그려보기
+ b. 의사코드 작성
+ c. 실제코드 작성
+ 
+ 패스| 	테이블|	최솟값
+ ---|---|---
+0	|[9,1,6,8,4,3,2,0]	|0
+1	|[0,1,6,8,4,3,2,9]	|1
+2	|[0,1,6,8,4,3,2,9]	|2
+3	|[0,1,2,8,4,3,6,9]	|3
+4	|[0,1,2,3,4,8,6,9]	|4
+5	|[0,1,2,3,4,8,6,9]	|6
+6	|[0,1,2,3,4,6,8,9]	|8
+
+```
+* 의사코드
+
+for i = o to n:
+	a[i]부터 a[n-1]까지 차례로 비교하여 가장작은 값이 a[j]에 있다고 할때,
+	a[i]와 a[j]의 값을 서로 맞바꾼다.
+
+def selectionsort(list):
+	length = len(list)
+	for i in range(length-1):
+		indexmin = i
+		for j in range(i+1, length):
+			if list[indexmin] > list[j]:
+				indexmin = j
+			list[i], list[indexmin] = list[indexmin],list[i]
+	return list
+	
+	
+	
+	
+```
+		
+	
+  
+	
