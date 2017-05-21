@@ -1,3 +1,5 @@
+
+
 #pyenv
 
 : pyenv는 프로젝트 별로 파이썬 버전을 따로 관리할 수 있도록 도와주는 라이브러리, 각각에 설치된 라이브러리간 충돌이 일어날 수도 있다.
@@ -15,7 +17,7 @@
 
 `pyenv local 가상환경폴더이름`
 
--
+
 
 #ipython
 
@@ -30,7 +32,7 @@ shift + g : 가장 아래로
 shift + a : 현재줄에서 가장 마지막으로
 ```
 
--
+
 
 #pip
 
@@ -57,22 +59,21 @@ pip install
 
 : ImportError: No module named 'packaging'
 
-```
-pip install --upgrade pip
-```
+
+`pip install --upgrade pip`
+
 
 : 실행후 다시 pip install
 
 : Could not import setuptools which is required to install from a source distribution.
 
-```
-pip install -U setuptools
-```
+
+`pip install -U setuptools`
+
 
 : 실행 후 다시 pip install
 
 
--
 
 #연습문제/Q&A
 
@@ -182,6 +183,7 @@ if not false
 :b를 나눈 나머지  0이 되니까 컴퓨터트 1을 true로 받기때문에 not false = true
 
 ```
+
 * 위치인자묶음, 키워드인자 묶음 동시사용
 
 ![](/Users/mac/projects/images/스크린샷 2017-05-18 오후 2.43.36.png)
@@ -249,6 +251,7 @@ sec = 60
 365*24*sec #표현식
 525600	# 정수 525600의 리터럴값
 ```
+
 * 구문 (제어문) : 값의 의미를 지니지 않으며, 어떠한 목적을 수행하는 코드
 
 ```
@@ -266,7 +269,7 @@ for char in '안녕하세요':
 
 : 프로그래머는 변수를 선언하는 형태로 컴퓨터의 메모리에 값을 할당하고 , 참조할수 있다.
 
-> 프로그래밍언어에서는 같다의 의미는 '=='이다.
+: 프로그래밍언어에서는 같다의 의미는 '=='이다.
 
 ```
 val = 100 # val라는 변수에 100이라는 정수를 할당(**100은 정수 type의 데이터형태인 객체를 의미**)
@@ -277,7 +280,7 @@ val = 100 # val라는 변수에 100이라는 정수를 할당(**100은 정수 ty
 
 : 변수는 단지 이름뿐이며, 그자체가 어떤 값을 가지고 있는것이 아니다. 100이라는 정수형 객체가 있는것 뿐이다.
 
-* **어떠한 변수가 참조하고 있는 객체가 메모리상에서 가지고 잇는 고유의주소(id)를 출력하는 id내장함수를 사용할 경우 **
+**어떠한 변수가 참조하고 있는 객체가 메모리상에서 가지고 잇는 고유의주소(id)를 출력하는 id내장함수를 사용할 경우 **
 
 ```
 id(var1)
@@ -302,6 +305,7 @@ id(var1)
 >>> type('안녕하세요')
 <class 'str'>
 ```
+
 : 문자열은  str(문자열)형임을 나타낸다.
 
 : 클래스는 객체의 타입(정의)를 나타낸다.
@@ -310,6 +314,7 @@ id(var1)
 * 변수의 이름 제한
 
 (1) 사용가능한 문자
+
 : 소문자,대문자,숫자,언더스코어(_)
 
 : 이름은 숫자로 시작못하고, 언더스코어로 시작하는 변수명은 일반적으로 사용안함
@@ -406,6 +411,7 @@ var = input('숫자를 입력해주세요 : ')
 >>> notice += '(패치노트)'
 >>> notice += ': 7.1 패치노트'
 ```
+
 ![](/Users/mac/projects/images/스크린샷 2017-05-18 오후 6.23.39.png)
 
 * 형변환
@@ -416,6 +422,7 @@ var = input('숫자를 입력해주세요 : ')
 >>> str(147)
 '147'
 ```
+
 : 문자열을 제외한 객체를 print함수로 호출하면, 내부적으로 str함수를 사용한 결과를 나타내준다.
 
 * 이스케이프 문자
@@ -476,6 +483,8 @@ var = input('숫자를 입력해주세요 : ')
 :split함수와 반대의 역할을 한다.
 :문자열 리스트를 하나의 문자열로 결합해준다.
 
+`','.join(해당리스트(문자열))`
+
 
 ```
 girlsday_list = girlsday.split(',')
@@ -486,7 +495,7 @@ print(girlsday_str)
 
 
 
- `','.join(해당리스트(문자열))`
+
 
 * 대소문자 다루기
 
@@ -524,6 +533,7 @@ lux.swapcase()
 %g	|10진 부동소수점수 혹은 지수로 나타낸 부동소수점수
 %%	|리터럴 %
 
+
 `string % data`
 
 ```
@@ -557,32 +567,32 @@ dict = {'d': d, 'f': f, 's': s}
 >>> '{:d} {:f} {:s}'.format(d, f, s)
 '37 3.140000 Fastcampus'
 ```
+
 : d는 정수 , f는 부동소수점 , s는 문자열
 
-
 : 필드길이 10, 우측정렬
-```
-'{:10d}'.format(d)
-		37'
-```
+
+
+`'{:10d}'.format(d)`
+
+
 : 필드길이 10, 좌측정렬
 
-```
-'{:<10d}'.format(d)
-```
+
+`'{:<10d}'.format(d)`
+
 
 : 필드길이 10 , 가운데 정렬
 
-```
- '{:^10d}'.format(d)
-```
-: 필드길이 10, 가운데정렬 , 빈공간은 ~로 채움
-```
-'{:~^10d}'.format(d)
-'~~~~37~~~~'
-```
 
--
+` '{:^10d}'.format(d)`
+
+: 필드길이 10, 가운데정렬 , 빈공간은 ~로 채움
+
+`{:~^10d}'.format(d)`
+
+
+
 
 #시퀀스 타입
 
@@ -614,16 +624,20 @@ dict = {'d': d, 'f': f, 's': s}
 ```
 
 * expend대신 append를 사용하면??
-```
+
+
 : ['apple', 'banana', 'melon', ['red', 'green', 'blue']]
 
 : 리스트안에 리스트가 들어가는경우
 
 
 * del 리스트[오픈셋(순서)]
+
 `del fruits[0]`
 
 * 값으로 리스트 항목 삭제(remove)
+
+
 `fruits.remove('값')`
 
 * 리스트 항목 추출 후 삭제(pop)
@@ -635,16 +649,20 @@ dict = {'d': d, 'f': f, 's': s}
 
 * 값으로 리스트 항목 오프셋 찾기(index)
 
-```
->>> fruits.index('red')
-```
+
+`>>> fruits.index('red')`
+
 
 * fruits리스트의 1번째 위치에 'mango'를 추가해보자
-```
-: fruits.insert(0,'mango')
-```
+
+
+
+`: fruits.insert(0,'mango')`
+
 
 * 존재 여부 확인 (in)
+
+
 ```
 >>> 'red' in fruits
 True
@@ -652,9 +670,9 @@ True
 
 * 값세기(count)
 
-```
-fruits.count('red')
-```
+
+`fruits.count('red')`
+
 
 * 정렬하기(sort,sorted)
 
@@ -675,12 +693,14 @@ fruits.count('red')
 >>> colors = 'red', 
 >>> fruits = 'apple', 'banana'
 ```
+
 : 튜플의 요소가 1개일때는 요소의 뒤에 ,(쉼표)를 붙여야한다.
 
 * 튜플 언패킹
-```
->>> f1,f2 = fruits
-```
+
+
+`>>> f1,f2 = fruits`
+
 * 튜플을 사용하는 이유는 : 리스트보다 적은 메모리를 사용하고, 정의후에는 변하지 않는 내부값이 있기 때문이다.
 
 -
@@ -700,10 +720,9 @@ fruits.count('red')
 
 * 딕셔너리끼리의 결합 (update)
 
-```
-com_dict.update(item_dict)
 
-```
+`com_dict.update(item_dict)`
+
 
 * 삭제(del)
 
@@ -806,6 +825,7 @@ else:
 조건1이 참일경우 if 조건1 else 조건1은 거짓이나 조건2가 참일경우 if 조건2 else 조건1,2가 모두 거짓일 경우
 
 ```
+
 : print('good') if vacation >= 7 else print('normal) if vacation >= 5 else print('bad')
 
 #for문(조건에 따른 순회)
@@ -814,11 +834,13 @@ else:
 for 항목 in 순회가능(iterable)객체:
    <항목을 사용한 코드>
 ```
+
 : 순회가능 객체에는 문자열,튜플,딕셔너리,셋이 있다.
 
 * 키순회 : dict.keys(), 값순회 : dict.values()를 사용하고, 키,값을 모두 순회할때에는 dict.items()를 사용한다.
 
 * 중첩
+
 
 ```
 for 항목1 in 객체1:
@@ -854,7 +876,6 @@ for 항목 in 객체:
 else:
 	break가 한번도 호출되지 않았을 경우의 코드
 	
-```
 
 * 여러 시퀀스 동시순회(zip) : zip으로 묶은 시퀀스들중, 가장 짧은 시쿼스가 완료되면 순회가 종료된다.
 
@@ -878,6 +899,8 @@ list(zip(fruits,colors))
 while 조건:
 	조건이 참일경우 실행
 	조건이 거짓이 될경우까지 계속해서 반복
+	
+	```
 	
 -
 	
@@ -1035,6 +1058,7 @@ ABC
 ...   return {'name': name, 'age': age, 'gender': gender, 'class': cls}
 
 ```
+
 : 매개변수로 cls (키워드인자) : 'wps')를 추가했다.
 
 * **기본 매개변수값의 정의 시점 **
@@ -1052,7 +1076,6 @@ ABC
 >>> return_list('banana')
 ['apple', 'banana']
 
-
 ```
 
 : 이것을 보면, result라는 매개변수를 추가했고
@@ -1063,7 +1086,6 @@ result라는 리스트에다 value리스트를 추가하고 result를 반환했�
 * 함수가 실행되는 시점에 기본 매개변수값을 계산하기 이위해서는
 
 ```
-
 >>> def return_list(value, result=None):
 ...   if result is None:
 ...     result = []
@@ -1077,6 +1099,7 @@ result라는 리스트에다 value리스트를 추가하고 result를 반환했�
 
 ```
 : **result 키워드인자에 None이라는 값을 주고, result값을 None으로 지정하여 함수가  실행될때마다 리스트를 비운다. 매개변수 result**
+
 
 * 실습
 
@@ -1126,6 +1149,7 @@ def print_args(*args):
 * 키워드인자 묶음
 
 : 함수에 키워드인자로 주어진 변수의 묶음은 `**매개변수명**으로 사용할 수 있다. `**kwargs**
+
 ```
 def print_kwargs(**kwargs):
   print(kwargs)
@@ -1182,8 +1206,6 @@ def print_kwargs(**kwargs):
 
 * 실습
 
-
-
 1. msg라는 매개변수를 갖는 함수를 정의, 해당 함수는 print(msg)를 실행하는 또 다른 함수를 생성해서 리턴해준다. 1의 함수명은return_print_function으로 작성
 
 2. execute_another_function에서 위의 함수를 호출해서 만든 함수를 변수 f1에 할당 후, f1변수를 인자로 전달하여 실행
@@ -1222,6 +1244,7 @@ execute_another_function(f1)
 
 : 파이썬에서는 코드 작성시, 각 함수마다 독립적인(스코프(영역))을 가진다.
 
+
 ```
 champion = 'Lux' # 전역영역(global scope)
 
@@ -1249,6 +1272,7 @@ show_global_champion()
 change_global_champion()
 ```
 
+
 : 결과를 실행해보면 change_global_champion 함수에서 오류가 발생하는것을 알 수 있다.
 
 첫번째 코드에서는 champion의 변수가 함수의 로컬스코프에 존재하지 않기 때문에 글로벌 영역의 'lux'와 같은 해당변수를 찾아 출력된 반면에 change_global_champion은 로컬스코프에 또다른 변수가 존재하기 때문에, 할당하기 전인 변수를 사용한것을 판단하여 프로그램에서 오류를 발생시킨다.
@@ -1268,6 +1292,8 @@ change_global_champion()
 : 확인시  `dir`함수를 사용하며, `dir`함수는 해당 객체가 사용가능한 속성 및 함수들을 리스트 형태로 나타내준다.
 
 * 로컬스코프에서 글로벌 스코프의 변수를 사용
+
+
 
 ```
 champion = 'Lux'
@@ -1308,6 +1334,7 @@ print('global locals() : {}'.format(locals()))
 local1()
 
 ```
+
 : 로컬스코프 내부에는 또 다른 로컬 스코프가 존재할 수 있다. 전역 스코프가 아닌, **자신의 바로 바깥 영역의 로컬스코프(자신보다 한단계 위의 로컬스코프)의 데이터를 참조한다.**
 
 * global키워드와 인자전달의 차이
@@ -1332,6 +1359,7 @@ print(global_level)
 
 (2) global키워드를 사용한 경우
 
+
 ```
 global_level = 100
 def level_add():
@@ -1345,6 +1373,7 @@ print(global_level)
 >>> 130
 >>> 130
 ```
+
 * 실습(리스트 변수가 할당될 경우)
 
 
@@ -1373,6 +1402,7 @@ l3 = return_list('혜리')
 print(l3)
 
 ```
+
 ![](/Users/mac/projects/images/스크린샷 2017-05-21 오후 12.53.02.png)
 
 : result매개변수로 사용할 list변수를 주지 않았을경우 result ==None이면 result = []으로 처리했기에 리셋될때마다 id값도 달라지고 내용도 reset된다.
@@ -1398,18 +1428,25 @@ for char i string.ascii_lowercase:
 	print((lambda x : x.upper() if x > 'i' else x)(char))
 
 ```
+
 * 클로져(Closure)
 
 : 함수가 정의된 환경을 말하며, 파이썬 파일이 여러개인 경우 각 파일은 하나의 `모듈` 역할을 하고 각 모듈은 독립적인 환경을 가진다. 각 독립된 환경은 각자의 영영을 전역영역으로 사용한다.
 
 closure/module_a.py
+
+
 ```
 level = 100
 def print_level():
     print(level)
     
 ```
+
+
 closure/module_p.py
+
+
 ```
 import module_a
 level = 50
@@ -1419,6 +1456,8 @@ def print_level():
 module_a.print_level()
 print_level()
 ```
+
+
 : python module_b.py로 module_b를 실행한다. 함수의 전역 영역은 해당 함수가 정의된 모듈 전역영역으로, 전역변수는 모듈의 영역에 영향을 받는다.
 
 * 내부함수의 클로져
@@ -1519,6 +1558,8 @@ print(result)
 
 : 제너레이터는 함수의 파이썬 시퀀스데이터를 사용하는데 생성, 시퀀스전체 데이터를 가지고 있는것이 아닌, 어떠한 루틴만을 가지고 있는것이다. 메모리를 적게 쓸 수 있다. 제너레이터는 마지막에 호출한 위치(항목)을 기억하고 있으며, 한 번 순회할 때 마다 그 다음값을 반환한다. 제너레이터는 함수를 통해 만들어지며, 함수 내부의 반복문에서  `yield`키워드를 사용하면 제너레이터가 된다.
 
+
+
 ```
 def range_gen(num):
     i = 0
@@ -1546,6 +1587,8 @@ while i < 8:
     i += 1
     
 ```
+
+
 : 함수 내부에 `yield`키워드가 사용되어, 제너레이터 함수가 되었으며, 함수를 실행하면 제너레이터 객체를 반환한다. `yield`부분에서 멈춘 제너레이터 객체를 순회하기 위해서는  `__next__()`함수를 실행해준다.
 
 
@@ -1570,6 +1613,7 @@ print(result1)
 
 >>> 1
 >>> 3
+
 (2)
 
 def number(*args):
@@ -1594,7 +1638,7 @@ print(result1)
 
 ```
  def number(*args):
-     count = len(args)ㅑ
+     count = len(args)
      print('위치인자가 {}개 전달되었습니다.'.format(len(args))
      return count
      
@@ -1634,9 +1678,11 @@ def search(source, key):
 			return index
 		index += 1
 	return -1
+```
 
 : while문을 사용하는 경우, index 순서를 0으로 할당한후 한개씩 증가시키며, source리스트의 길이가 초과되지 않는다면, 우리가 찾고자 하는 key와 source의 리스트[순서]의 값과 같으면 index 순서를 반환하고 아니면 -1로 리턴해라. while문은 가정이 참일경우 실행된다.
 
+```
 (2) 
 
 def search1(source,key):
@@ -1663,6 +1709,8 @@ r2 = search1(source,'x')
 r3 = search2(source,'x')
 
 : 3번의 경우, 순서와 문자 2가지 변수를 enumerate함수를 사용하였다(순서와 문자가 같이 for문을 돌기에, index(순서)에 해당하는 문자가 같이 묶여있다 그러므로  char가 찾고자하는 key와 같다면 index(순서)를 반환하게 만들수 있다.
+
+
 ```
 
 * 선택정렬(selection sort)
