@@ -486,12 +486,136 @@ a11bef06a3f659402fe7563abf99ad00de2209e6 first commit
 
 : --pretty옵션을 뒤에 oneline을 쓰면 한줄로 커밋된 결과물만 보여준다.
 
+* git log --oneline --graph --all : 그래프형식으로 보여줌
 
+#되돌리기
 
+: 모든 단계에서 어떤것은 되돌리고(undo) 싶을 때가 있다. 
 
+`git commit --amend`
 
+: 완료한 커밋을 수정하고 싶을때, 너무 일찍 커밋했거나 어떤파일을 빼먹었을때, 그리고 커밋 메세지를 추가하고 싶을때
 
+* 파일 상태를 unstaged로 변경하기
 
+`git reset HEAD '파일명'`
+
+: git reset 명령은  --hard옵션을 사용하면 워킹디렉토리의 파일까지 수정되기 때문에, 조심해야한다.
+
+* Modified파일 되돌리기
+`git checkout --'파일명'`
+: 수정한 파일을 되돌리는 방법이며, 원래 파일로 덮어썼기 때문에, 수정한 내용은 모조리 변경된다.
+
+#리모트저장소
+
+: 리모트저장소를 관리 할줄 알아야 다른 사람과 함께 일할 수 있다. 
+
+* 리모트 저장소 확인하기
+`git remote`명령으로 현재 프로젝트에 등록된 리모트 저장소를 확인 할 수 있다.
+
+`git remote -v`
+
+```
+$ git remote -v
+origin	https://github.com/schacon/ticgit (fetch)
+origin	https://github.com/schacon/ticgit (push)
+```
+
+* 리모트 저장소 추가하기
+
+`git remote add [브랜치명] [url]`
+
+* 리모트 저장소를 pull하거나 fetch하기
+
+: 리모트 저장소에서 데이터를 가져오려면 간단히 아래와 같이 실행한다
+
+`git fetch [remote-name]`
+
+: 리모트 저장소에 있는 모든 데이터를 모두 가져온다. 저장소를 clone하면 명령은 자동으로 리모트 저장소를 `origin`이라는 이름으로 추가된다. 그래서 나중에 `git fetch origin`명령을 실행하면, clone한 이후에 수정된것을 모두 가져온다.
+
+`git pull`명령으로 리모트 저장소에서 데이터를 가져올뿐만 아니라, 자동으로 로컬 브랜치와 merge시킬수 있다.
+
+(1) git clone 명령은 자동으로 로컬의 master브랜치가 리모트 저장소의 master브랜치를 추적하도록 한다.
+
+(2) git pull명령은 clone한 서버에서 데이터를 가져오고 그 데이터를 자동으로 현재 작업하는 코드와 merge시킨다.
+
+* 리모트저장소에 push 하기
+
+: 프로젝트를 공유하고 싶을때, 저장소에 push할 수 있다.
+
+`git push [리모트저장소이름] [브랜치 이름]'으로 단순하다.
+
+` git push origin master'
+
+: 이명령은 clone한 리모트 저장소에 쓰기 권한이 있고, clone한 이우헤도 아무도 저장소에 push하지 않았을때 사용, 즉 clone한 사람이 여려명 있을때, 다른사람이 push하려고 하면 push 할수 없다.
+**다른 사람이 작업한 것을 가져와서 merge한 후에 push할 수 있다.**
+
+* 리모트 저장소 살펴보기
+
+`git remote show [리모트저장소이름]` 명령으로 리모트 저장소의 구체적인 정보를 알수 있다.
+
+```
+$ git remote show origin
+* remote origin
+  Fetch URL: https://github.com/schacon/ticgit
+  Push  URL: https://github.com/schacon/ticgit
+  HEAD branch: master
+  Remote branches:
+    master                               tracked
+    dev-branch                           tracked
+  Local branch configured for 'git pull':
+    master merges with remote master
+  Local ref configured for 'git push':
+    master pushes to master (up to date)
+ ```
+ 
+ : 리모트저장소의 URL과 추적하는 브랜치를 출력한다. 이 명령은 `git pull`명령을 실행할 때, master브랜치와 merge할 브랜치가 뭔지 알려준다. `git pull`명령은 리모트 저장소 브랜치의 데이터를 모두 가져오고 나서 자동으로 merge할 것이다.
+
+* 리모트 저장소 이름을 바꾸거나 리모트 저장소를 삭제하기
+
+`git remote rename`명령으로 저장소의 이름을 변경할 수 있다.
+
+```
+$ git remote rename pb paul
+$ git remote
+origin
+paul
+```
+
+: 로컬에서 관리했던 리모트 저장소의 브랜치 이름도 바뀐다는 점을 생각하자.
+
+* 리모트 저장소 삭제
+`git remote rm '브랜치명`
+
+#태그
+`git tag`명령으로 태그가 있는지 확인
+
+* 태그 붙이기
+
+: git의 태그는 lightweight태그와 annotated태그로 두 종류가 있다.
+
+(1)lightweight태그 : 브랜치와 비슷한데, 가르키는 지점을 최신 커밋으로 이동시키지 않는다.
+
+(2)Annotated태그 : git데이터베이스에 태그를 만든 사람의 이름 이메일,태그를 만든 날짜,테그 매세지도 저장
+
+* Annotated태그 
+`git tag -a v1.4 -m 'my version 1.4'`
+
+* lightweight태그
+
+: 기본적으로 파일에 커밋 체크섬을 저장하는것뿐이다. 
+
+`git tag v1.4`
+
+* 예전 커밋에 대해서도 태그할수 있다
+`git tag -a v1.2 체크섬`
+
+* 태그 공유하기
+
+: `git push`명령은 리모트 서버에 태그를 전송하지 않기에, 태그를 만들었으면 서버에 별도로 push해야 한다.
+
+`git push origin v1.5`
+`git push origin --tags`
 
 
 #리모트 저장소
@@ -588,7 +712,6 @@ git checkout -- <파일 이름>
 * release: 버전
 * develop : 커밋,수정,이슈
 : 문제가생길경우 브랜치를 바꿔서 만들기 merge로 원래 브랜치에 합병
-
 
 
 
