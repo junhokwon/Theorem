@@ -1594,7 +1594,7 @@ print(result1)
 
 ```
  def number(*args):
-     count = len(args)
+     count = len(args)ㅑ
      print('위치인자가 {}개 전달되었습니다.'.format(len(args))
      return count
      
@@ -1689,13 +1689,13 @@ r3 = search2(source,'x')
 5	|[0,1,2,3,4,8,6,9]	|6
 6	|[0,1,2,3,4,6,8,9]	|8
 
-```
+
 * 의사코드
 
 for i = o to n:
-	a[i]부터 a[n-1]까지 차례로 비교하여 가장작은 값이 a[j]에 있다고 할때,
-	a[i]와 a[j]의 값을 서로 맞바꾼다.
+a[i]부터 a[n-1]까지 차례로 비교하여 가장작은 값이 a[j]에 있다고 할때,a[i]와 a[j]의 값을 서로 맞바꾼다.
 
+```
 def selectionsort(list):
 	length = len(list)
 	for i in range(length-1):
@@ -1703,12 +1703,9 @@ def selectionsort(list):
 		for j in range(i+1, length):
 			if list[indexmin] > list[j]:
 				indexmin = j
-			list[i], list[indexmin] = list[indexmin],list[i]
+			list[i], list[indexmin] = list[indexmin],list[j]
 	return list
-	
-	
-	
-	
+		
 ```
 		
 	
