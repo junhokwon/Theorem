@@ -233,6 +233,46 @@ if not false
 
 * 제너레이터 : 파이썬의 시퀀스 데이터를 생성 : 
 
+* 커맨드 라인에서 인자 전달
+프로그램 실행 시 인자를 전달 할 수 있다. 파이썬의 내장sys모듈의 argv리스트에서 확인 할 수 있다.
+
+```
+python lol.py abc sdf
+
+# 실행하고자 하는 파일 안에 import sys
+
+>>> ['lol.py','abc','sdf']
+>>> 
+>>> 
+
+```
+class shop:
+	def __init__(self,name):
+		self.name = name
+		
+from '파일명' import '클래스명'
+lotteria = shop('lotteria')
+: shop 형 클래스 각체를 메모리에 생성
+: 생성과정에서 init을 실행하면서 lotteria를 가져다 쓴다
+: 반환한 객체는 lotteria변수에 할당됨
+
+* 객체안에 있는 함수 : 메서드
+
+
+
+각 모듈에서 자신이 import될 때 불러와질 목록을 지정하고자 한다면 __all__ 을 정의하면 된다.
+
+ * 객체 지향 프로그래밍
+ * 절차적 프로그래밍 : 맨위에서 아래로 단순한 순차적 프로그래밍
+
+ 
+ ![](/Users/mac/projects/images/스크린샷 2017-05-22 오후 4.45.42.png)
+ 
+ ![](/Users/mac/projects/images/스크린샷 2017-05-22 오후 4.45.46.png)
+ 
+ ![](/Users/mac/projects/images/스크린샷 2017-05-22 오후 4.45.48.png)
+
+ 
 
 #파이썬 본문
 
@@ -1662,7 +1702,7 @@ for x in range(2,10);
 
 #알고리즘 실습
 
-* 순차검색
+#순차검색
 
 (1) 문자열과 키 문자 1개를 받는 함수 구현
 (2) while문을 이용하여, 문자열에서 키문자가 존재하는 index위치를 검사 후 해당 index를 리턴
@@ -1713,18 +1753,24 @@ r3 = search2(source,'x')
 
 ```
 
-* 선택정렬(selection sort)
+# 선택정렬(selection sort)
 
 (1) [9, 1, 6, 8, 4, 3, 2, 0, 5, 7] 를 정렬한다.
 
 (2) 정렬과정
+
  a. 리스트중 최소값을 검색
+ 
  b. 그 값을 맨 앞의 값과 교체(패스)
+ 
  c. 나머지 리스트에 위의 과정을 반복
  
  (3) 해결방법
+ 
  a. 알고리즘 진행과정 그려보기
+ 
  b. 의사코드 작성
+ 
  c. 실제코드 작성
  
  패스| 	테이블|	최솟값
@@ -1748,14 +1794,414 @@ def selectionsort(list):
 	length = len(list)
 	for i in range(length-1):
 		indexmin = i
+		# indexmin을 i라고 하자!
+		
 		for j in range(i+1, length):
+		# j는 비교값, i+1은 현재기존값 i다음의 순서부터, 길이 						전체 사이
+		
 			if list[indexmin] > list[j]:
+				# indexmin에 기존값(i)에 할당했기에, 현재
+				i번째 순서의 값이 비교할값 j번째 순서의 값보다 				클경우
 				indexmin = j
-			list[i], list[indexmin] = list[indexmin],list[j]
+				# indexmin : 최소값의 순서는 j번째이다.
+				
+			list[i], list[indexmin] = 	list[indexmin],list[j]
+			
+			# a,b = b,a 와 같은 구조,i번째 값과 j번째 값을 			바꾼다.
 	return list
 		
 ```
+
+1번째 : 	N-1
+2번째 : 	N-2
+..
+..
+..
+N-2번째 : 2번
+N-1번째 : 1번
+
+N개가 있을 경우,
+
+1~ N-1까지의 합
+
+N(N-1)/2
+= O(n^2)
+
+```
+sample_list = [5,1,3,7,2,9]
+def selection_sort(ori_list):
+	#주어진 리스트의 길이
+	ori_len = len(ori_list)
+	
+	#len즉 리스트의 길이로 
+	
+	#리스트의 길이 -1번만큼 순회, 각 인덱스는 i에 지정
+	i는 기존값이기에 원소하나는 뺴고 나머지 순회!
+	for i in range(ori_len-1):
+	
+	# range범위만큼 반복
+	
+	print('{}번째 loop입니다.'.format(i+1))
+	
+	cur_min_index = i
+	
+	print('현재 최소값은 {},인덱스는 {}입니다.'.format(ori_list[cur_min_index], cur_min_index+1)
+	
+	#loop내부에서 매 loop마다 리스트길이 -i(상위 인덱스)만큼 순회
+	
+	for j in range(i+1,ori_len):
+		print(' {}번째 요소의 값은 {}'.format(i+1,ori_list[j])
+		if ori_list[j] < ori_list[cur_min_index]:
 		
+		# 현재의 기존값이 list[j]값보다 크다면 바꿔준다.
+		
+		cur_min_index = j
+		
+		print(' 최소값을 찾아 인덱스 저장, 찾은 최소값은 {}, 인덱스는 {}'.format(ori_list[cur_min_index],cur_min_index + 1))
+		
+list[i],list[cur_min_index] = list[cur_min_index],list[j]
+		
+selection_sort(sample_list)
+```
+
+#버블정렬
+
+: 정렬이 필요한 리스트에서 가장 인접한 요소를 비교, 교환을 반복해서 최대값을 가장 뒷부분 위치하게 하여 정렬을 한다.
+
+![](http://cfs2.tistory.com/upload_control/download.blog?fhandle=YmxvZzEyNDIxQGZzMi50aXN0b3J5LmNvbTovYXR0YWNoLzAvMjIucG5n)
+
+![](http://cfs2.tistory.com/upload_control/download.blog?fhandle=YmxvZzEyNDIxQGZzMi50aXN0b3J5LmNvbTovYXR0YWNoLzAvMjQucG5n)
+
+![](http://cfs3.tistory.com/upload_control/download.blog?fhandle=YmxvZzEyNDIxQGZzMy50aXN0b3J5LmNvbTovYXR0YWNoLzAvMTQucG5n)
+
+```
+list = []
+for i in range(1,10):
+	list.append(random.randint(1,10))
+	 #random무작위 만드는 함수 random.randint(범위)
+	 
+	 
+def bubble_sort(list):
+	len_list = len(list)
+	# list의 길이 
 	
-  
+	for start_index in range(len_list-1):
 	
+		#start_index순서를 제외한 list의 범위
+		
+		#list의 길이 -1만큼 반복의 범위  
+	
+		
+		for index in range(1,len_list -i):
+		
+		# 전체 리스트 길이 - start_index의 순서를 뺀 범위에서 비교
+		# 큰수부터 맨뒤부터 정렬???
+		# ex) start_index = 5 
+		      for 비교값(index) in (1,2)
+		      
+		
+		
+			if list[index-1] > list[index]
+			# 만약 앞의 값이 > 뒤의값보다 크면,
+			list[index-1],list[index] = list[index],list[index-1]
+			# 앞의값과 뒤의값을 바꾼다.
+			
+```
+```
+def bubblesort(x):
+	length = len(x)-1
+	for i in range(length):
+		for j in range(length-i):
+			if x[j] > x[j+1]
+				x[j],x[j+1] = x[j+1],x[j]
+	return x
+	
+```
+#삽입정렬
+
+: 삽입정렬은 이미 정렬된 자료 리스트에서 새로운 자료를 적절한 위치에 삽입하는 동작을 반복하여 정렬하는 방법
+
+![](https://upload.wikimedia.org/wikipedia/commons/e/ea/Insertion_sort_001.PNG)
+
+```
+def insertion_sort(list):
+	for index in range(1,len(list))
+	# list의 길이만큼 반복하겠다.
+	value = list[index]
+	# value 삽입할 값
+	i = index - 1
+	# 삽입할 value = list[index]는 왼쪽으로   움직이면서 하나씩 비교할테니, 순서앞쪽의 의미로 index-1이다.
+	while i>=0 
+	
+	# 왼쪽으로 이동하면서 순서 0번째까지
+		if value < list[i]:
+		
+		# index-1의 순서에 있는 값이 삽입하고자    하는 값보다 크다면,
+		
+		 list[i+1] = list[i]
+		 
+		 # list[i]의 값을 오른쪽으로 옮겨야하니
+		 list[i+1]에 할당
+		 list[i] = value
+		 
+		 # 큰값을 오른쪽으로 옮겼으니 들어갈자리는 list[i] = value 
+		 
+		 i = i-1
+		 
+		 # 계속 왼쪽으로 움직여야 하니 순서값을 앞쪽으로 땡겨줘야 한다.
+		 
+```
+
+```
+def insertsort(x):
+	for in range(1, len(x)):
+	
+		j = i - 1
+		# j번째는 앞의 index i 전의 값 -1
+		
+		key = x[i]
+		# key값은 삽입하고자 하는 값 x[i]
+		
+		while x[j]> key and j >=0
+		# 앞의 값이 삽입하고자 하는 값보다 크다면,
+		
+		x[j+1] = x[j]
+		#앞의 값을 오른쪽으로 미룬다.
+		
+		j = j -1
+		#좌측으로 한번씩 이동하기 위해서 -1씩 해준다.
+	x[j+1] = key
+	# 순서 0이있다면 +1을
+	return x
+	
+```
+				
+
+
+#모듈과 패키지
+
+* 모듈
+
+: 파이썬의 파일은 각각 하나의 모듈로 취급되며, 실행이나 함수의 정의, 단순 변수의 모음 등등 여러 역할을 한다.
+
+* 모듈 불러오기(import)
+
+: 기본 게임모듈에서, 부가적인 기능을 불러와서 사용하는 형태로 코드를 작성해본다.
+
+* module/shop.py
+
+```
+def buy_item():
+    print('Buy item!')
+
+buy_item()
+
+```
+
+* module/game.py
+
+```
+def play_game():
+    print('Play game!')
+
+play_game()
+```
+
+* module/lol.py
+
+```
+import game
+import shop
+
+print('= Turn on game =')
+game.play_game()
+shop.buy_item()
+```
+	
+* __name__변수
+
+: lol.py가 실행될때, game,shop가 import되는 순간 실행되어 버리는 문제 발생!
+
+: `import`한 모듈의 경우 실행을 막는방식 사용
+
+: 파이썬 인터프리터가 실행한 모듈의 경우, __main__이라는 이름을 가진다. **python <파일명>으로 실행한 경우에 동작할 부분은 if문으로 감싸준다**
+
+```
+def buy_item():
+	print('buy item!')
+	
+if __name__ == '__main__':
+	buy_item()
+	# python 파일명으로 실행한경우에 동작하는 부분만 if문으로 감싸주면 import <함수명>일때 함수가 실행되지 않는다.
+	
+```
+
+* 네임스페이스
+
+: 각 모듈은 독립된 네임스페이스(이름공간)을 가진다. 
+
+: `import 모듈명`의 경우, 모듈의 이름이 전역 네임스페이스에 등록되어 `모듈명.함수`로 사용이 가능하다. 모듈명을 생략하고 모듈 내부의 함수를 쓰고 싶다면,
+
+: `from 모듈명 import 함수명`으로 불러들일수 있다.
+
+: `from 모듈명 import`또는 `import 모듈명`에서, 같은 모듈명이 존재하거나 혼동 될 수 있을 경우, 뒤에 `as`를 붙일수 있다.
+
+* 패키지 
+
+: 모듈들을 모아 놓은 특별한 폴더를 뜻한다.
+
+: 폴더를 패키지로 만들면, 계층구조를 가질 수 있으며, 모듈들을 해당 패키지에 모을 수 있는 역할을 한다. **패키지로 사용할 폴더에 `__init__.py`파일을 넣어주면, 해당 폴더는 패키지로 취급된다`
+
+![](/Users/mac/projects/images/스크린샷 2017-05-22 오후 11.48.19.png)
+
+* func패키지에 모듈을 넣은 경우에는
+
+(1) 
+`from 패키지명.모듈명 import '함수명'`
+
+(2) 
+
+`from 패키지명 import 모듈명`일경우는 함수 실행할때, `모듈명.함수`로 실행
+
+
+
+* 실습
+
+: friends 패키지 만들기, send_message함수를 가진 chat모듈 추가, send_message는 input을 이용해 2개의인자(친구명,메세지)를 받으며, 실행 시 `print`함수를 통해 메세지를 출력하며, 프로그램을 실행했을 경우 3을 입력하면  `send_message` 함수를 실행하도록 한다.
+
+![](/Users/mac/projects/images/스크린샷 2017-05-22 오후 11.58.51.png)
+
+![](/Users/mac/projects/images/스크린샷 2017-05-23 오전 12.09.32.png)
+
+
+#클래스
+
+* 객체지향 프로그래밍
+
+: 파이썬의 모든것은 객체(데이터의형태를 나타내는 타입)이며, 객체를 사용할때는 변수에 해당객체를 참조시켜 사용한다.
+
+* 변수 : 객체
+
+: 변수는 객체를 참조
+
+: 객체는 변수를 할당
+
+: 객체는 변수와 함수를 가지며, 특별히 객체가 가진 변수는 `속성`,객체가 가진 함수는 `메서드`라고 한다.
+
+* 클래스 
+
+: 클래스는 객체를 만들기 위한 틀이다.
+
+```
+class Shop:
+	def __init__(self,name):
+		self.name = name
+```
+
+: `__init__`은 클래스를 사용한 객체의초기화 메서드이다. 객체를 생성할때 인자를 어떻게 전달받고, 객체를 생성할지 정의 할 수 있다.
+
+```
+from class_sample import Shop
+
+: class_sample파일안에 Shop이라는 이름의 클래스를 가져온다.
+
+lotteria = Shop('Lotteria')
+
+: 롯데리아라는 인스턴스(좌측)에 Shop('Lotteria) = (self,name)(우측) 롯데리아라고 이름을 지정한 Shop클래스를 할당하였다.
+
+(1) Shop클래스 정의
+(2) Shop클래스형 객체를 메모리에 생성
+(3) 생성한 객체의 초기화 메서드 호출
+
+class Shop:
+	def __init__(self,name):
+	
+(4) name값을 저장하고 만들어진 객체를 반환
+
+self.name = name
+
+(5) lotteria 변수에 반환된 객체를 할당
+
+lotteria = Shop('Lotteria')
+
+```
+
+: 객체의 메서드(클래스내의 함수)를 정의할때, 첫번째 인수(매개변수)는 항상 `self`이다. `self`에서는 메서드를 호출하는 객체 자신이 자동으로 전달된다. 어떤 객체가 해당 메서드를 사용하는지 알수 있도록 `self`를 쓴다.
+
+* 속성이나 메서드에 접근할때는
+`객체.속성명` 또는 `객체.메서드명`을 사용
+
+```
+class Shop:
+	def __init__(self,name):
+		self.name = name
+	def show_info():
+		print('상점정보 : {}'.format(self.name)
+```
+
+* 클래스 속성
+
+: 어떤 하나의 클래스로 부터 생성된 객체들이 같은 값을 가지게 하고 싶을경우 `클래스 속성`을 사용한다.
+
+```
+class Shop:
+	description = 'python shop class'
+	def __init__(self,name):
+		self.name = name
+		
+```
+
+* 메서드
+
+(1) 인스턴스 메서드 
+
+: 인스턴스 메서드는 첫 번째 인수로 `self`를 가진다. 인스턴스를 이용해 메서드를 호출할때, 호출한 인스턴스가 자동으로 전달
+
+```
+class Shop:
+	description = 'python shop class'
+	def __init__(self,name,self.shop_type,self.address):
+		self.name = name
+		self.shop_type = shop_type
+		self.address = address
+		
+	def shop_info():
+		print('상점명 : {}
+				유형 : {}
+				주소 : {}
+				'.format(self.name,self.shop_type,self.address)
+				
+	def change_type(self,shop_type):
+	change_type = self.shop_type
+				
+cu = shop(CU,'편의점','신사역')
+
+cu.show_info()
+cu.change_type('pc방')
+cu.show_info()
+
+```
+
+
+* 클래스 메서드
+
+: 클래스 메서드는 클래스 속성에 대해 동작하는 메서드이다. 위의 인스턴스 메서드와 달리 호출 주체가 클래스이며, **첫번째 인자도 `cls`를 사용한다**
+
+: 클래스메서드는 `@classmethod 데코레이터`를 붙여 선언하며, 첫번째 인자의 이름은 관용적으로 `cls`를 사용한다.
+
+```
+ @classmethod
+    def change_description(cls,description):
+        cls.description = description
+```
+
+* 스태틱메서드 
+
+: 스태틱메서드는 클래스 내부에서 정의된 일반 함수이며, 단지 클래스나 인스턴스를 통해서 접근할수 있을뿐 , 해당 클래스나 인스턴스에 영향을 줄수 없다. 스태틱메서드는 `@staticmethod`데코레이터를 붙여 선언
+
+```
+@staticmethod
+    def print_type():
+        print('hello')
+```
+
