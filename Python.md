@@ -797,16 +797,18 @@ True
 
 * 집합연산
 
-연산자 |	설명
----|---
-|	|합집합(Union)
-&	|교집합(Intersection)
+```
+연산자 |	 설명
+-----|-----
+|   | 합집합
+&	 |교집합(Intersection)
 -	|차집합(Difference)
 ^	|대칭차집합(Exclusive)
 <=	|부분집합(Subset)
 <	|진부분집합(Proper subset)
 >=	|상위집합(Superset)
 >	|진상위집합(Proper superset)
+```
 
 
 * 오름차순으로 정렬한 list반환하는법
@@ -815,7 +817,6 @@ True
 
 * 딕셔너리의 items키에 각 항목들을 딕셔너리를 이용해 리스트를 할당한다.
 
--
 
 #if,elif,else(조건문)
 
@@ -865,8 +866,10 @@ else:
 조건1이 참일경우 if 조건1 else 조건1은 거짓이나 조건2가 참일경우 if 조건2 else 조건1,2가 모두 거짓일 경우
 
 ```
-
+```
 : print('good') if vacation >= 7 else print('normal) if vacation >= 5 else print('bad')
+
+```
 
 #for문(조건에 따른 순회)
 
@@ -877,7 +880,11 @@ for 항목 in 순회가능(iterable)객체:
 
 : 순회가능 객체에는 문자열,튜플,딕셔너리,셋이 있다.
 
-* 키순회 : dict.keys(), 값순회 : dict.values()를 사용하고, 키,값을 모두 순회할때에는 dict.items()를 사용한다.
+* 키순회 : dict.keys()
+
+* 값순회 : dict.values()를 
+
+* 키,값을 모두 순회할때에는 dict.items()를 사용한다.
 
 * 중첩
 
@@ -939,10 +946,12 @@ list(zip(fruits,colors))
 while 조건:
 	조건이 참일경우 실행
 	조건이 거짓이 될경우까지 계속해서 반복
+```
 	
-	```
-	
--
+
+
+
+
 	
 #컴프리헨션(comprehension)
 
@@ -969,11 +978,15 @@ for color in colors:
 
 * 셋 컴프리헨션
 
+
 ` {표현식 for 표현식 in 객체}`
+
 
 * 제너레이터 컴프리헨션
 
+
 `(표현식 for 표현식 in 객체)`
+
 
 : 괄호로 되어있지만 튜플을 생성하지 않는다
 (** 튜플은 컴프리헨션이 없다 **)
@@ -981,6 +994,7 @@ for color in colors:
 **: 제너레이터 객체는 순회가능하며, 리스트형태로 만들 수 있다.**
 
 * 1000에서 2000까지의 숫자 중, 홀수의 합을 구해본다.
+
 
 * 리스트 컴프리헨션을 사용하여 구구단 결과를 갖는 리스트를 만들고, 해당 리스트를 for문을 사용해 구구단 형태로 나오도록 출력해본다.
 각 단마다 한 번 더 줄바꿈을 넣어줘라
@@ -1010,7 +1024,7 @@ if not false
 
 ```
 
--
+
 #함수
 
 : 반복적인 작업을 하는 코드를 재사용이 가능하게 정의해 놓은것.
@@ -1060,12 +1074,14 @@ ABC
 
 : 매개변수 : something, 실행인자 : ABC
 
+
 * 매개변수와 인자의 차이
 
 : 함수 내부에서 전달되어 온 변수는 매개변수라 불며,
 함수를 호출할 떄 전달하는 변수를 인자로 부른다.
 
 * **함수에서 리턴해주는 값이 없을 경우, 아무것도 없다는 뜻을 가진 `None` 객체를 얻는다.
+
 
 * 위치인자 : 매개변수의 순서대로 인자를 전달하여 사용
 
@@ -1079,7 +1095,9 @@ ABC
 
 ```
 
+
 * 키워드 인자 : 매개변수의 이름을 지정하여 인자로 전달하여 사용하는 경우
+
 
 ```
 >>> student(age=30, name='hanyeong.lee', gender='male')
@@ -1093,11 +1111,13 @@ ABC
 
 : 인자가 제공되지 않을경우, 기본 매개변수로 사용할 값을 지정할 수 있다.
 
+
 ```
 >>> def student(name, age, gender, cls='WPS'):
 ...   return {'name': name, 'age': age, 'gender': gender, 'class': cls}
 
 ```
+
 
 : 매개변수로 cls (키워드인자) : 'wps')를 추가했다.
 
@@ -1105,6 +1125,7 @@ ABC
 
 : 기본 매개변수의 값은 실행될 때마다 계산되지 않고,
 **함수가 정의되는 시점에 계산되어 사용된다**
+
 
 ```
 >>> def return_list(value, result=[]):
@@ -1138,6 +1159,7 @@ result라는 리스트에다 value리스트를 추가하고 result를 반환했�
 ['banana']
 
 ```
+
 : **result 키워드인자에 None이라는 값을 주고, result값을 None으로 지정하여 함수가  실행될때마다 리스트를 비운다. 매개변수 result**
 
 
@@ -1188,12 +1210,12 @@ def print_args(*args):
 
 * 키워드인자 묶음
 
-: 함수에 키워드인자로 주어진 변수의 묶음은 `**매개변수명**으로 사용할 수 있다. `**kwargs**
+: 함수에 키워드인자로 주어진 변수의 묶음은 **매개변수명**으로 사용할 수 있다. **kwargs**
 
 ```
 def print_kwargs(**kwargs):
   print(kwargs)
-  ```
+```
   
 * 실습
 
@@ -1280,6 +1302,7 @@ execute_another_function(f1)
 	
 ```
 
+
 #스코프(영역)
 
 : 파이썬에서는 코드 작성시, 각 함수마다 독립적인(스코프(영역))을 가진다.
@@ -1297,6 +1320,8 @@ show_global_champion()
 print('print champion : {}'.format(champion))
 
 ```
+
+
 ```
 champion = 'Lux'
 
@@ -1350,6 +1375,8 @@ change_global_champion()
 print('print global champion : {}'.format(champion))
 ```
 
+
+
 : 이 경우, `change_global_champion` 함수는  champion 변수에 새로운 값을 대입한다. 만약 로컬 스코프에서 글로벌 스코프의 변수를 변경해야 한다면, 해당 변수가 로컬스코프에 생성되는 것이 아닌 **글로벌 영역에 이미 존재하는 값을 사용함을 명시해주어야 한다.**
 
 
@@ -1375,11 +1402,13 @@ local1()
 
 ```
 
+
 : 로컬스코프 내부에는 또 다른 로컬 스코프가 존재할 수 있다. 전역 스코프가 아닌, **자신의 바로 바깥 영역의 로컬스코프(자신보다 한단계 위의 로컬스코프)의 데이터를 참조한다.**
 
 * global키워드와 인자전달의 차이
 
 (1) 인자로 전달한 경우
+
 
 ```
 global_level = 100
@@ -1394,6 +1423,7 @@ print(global_level)
 >>>100
 
 ```
+
 
 : 인자로 전달할 경우, 같은 객체를 가르키는 글로벌 변수 global_level과 매개변수 value가 존재한다. 이때 매개변수인 value의 값을 변경하는 것은 global_level에 영향을 주지 않는다.
 
@@ -1413,6 +1443,7 @@ print(global_level)
 >>> 130
 >>> 130
 ```
+
 
 * 실습(리스트 변수가 할당될 경우)
 
@@ -1463,11 +1494,13 @@ import string
 ```
 
 
+
 ```
 for char i string.ascii_lowercase:
 	print((lambda x : x.upper() if x > 'i' else x)(char))
 
 ```
+
 
 * 클로져(Closure)
 
@@ -1636,6 +1669,8 @@ while i < 8:
 
 (1) 한개 또는 두개의 숫자 인자를 전달받아, 하나가 오면 제곱, 두개의 숫자를 받으면 두수의 곱을 반환해주는 함수를 정의하고 사용
 
+
+
 ```
 (1)
 
@@ -1674,6 +1709,7 @@ print(result1)
 >>> 12
 ```
 
+
 (2) 위치인자 묶음을 매개변수로 가지며, 위치인자가 몇개 전달되었는지를 print하고 개수를 리턴해주는 함수를 정의하고 사용
 
 ```
@@ -1699,6 +1735,7 @@ for x in range(2,10);
 		list2.append((lambda a,b : '{}*{} ={}'.format(a,b,a*b))(x,y))
 		
 ```
+
 
 #알고리즘 실습
 
@@ -1864,6 +1901,7 @@ list[i],list[cur_min_index] = list[cur_min_index],list[j]
 selection_sort(sample_list)
 ```
 
+
 #버블정렬
 
 : 정렬이 필요한 리스트에서 가장 인접한 요소를 비교, 교환을 반복해서 최대값을 가장 뒷부분 위치하게 하여 정렬을 한다.
@@ -1873,6 +1911,7 @@ selection_sort(sample_list)
 ![](http://cfs2.tistory.com/upload_control/download.blog?fhandle=YmxvZzEyNDIxQGZzMi50aXN0b3J5LmNvbTovYXR0YWNoLzAvMjQucG5n)
 
 ![](http://cfs3.tistory.com/upload_control/download.blog?fhandle=YmxvZzEyNDIxQGZzMy50aXN0b3J5LmNvbTovYXR0YWNoLzAvMTQucG5n)
+
 
 ```
 list = []
@@ -1907,6 +1946,8 @@ def bubble_sort(list):
 			# 앞의값과 뒤의값을 바꾼다.
 			
 ```
+
+
 ```
 def bubblesort(x):
 	length = len(x)-1
@@ -1917,6 +1958,8 @@ def bubblesort(x):
 	return x
 	
 ```
+
+
 #삽입정렬
 
 : 삽입정렬은 이미 정렬된 자료 리스트에서 새로운 자료를 적절한 위치에 삽입하는 동작을 반복하여 정렬하는 방법
@@ -1951,6 +1994,7 @@ def insertion_sort(list):
 		 # 계속 왼쪽으로 움직여야 하니 순서값을 앞쪽으로 땡겨줘야 한다.
 		 
 ```
+
 
 ```
 def insertsort(x):
@@ -2026,6 +2070,7 @@ shop.buy_item()
 
 : 파이썬 인터프리터가 실행한 모듈의 경우, __main__이라는 이름을 가진다. **python <파일명>으로 실행한 경우에 동작할 부분은 if문으로 감싸준다**
 
+
 ```
 def buy_item():
 	print('buy item!')
@@ -2035,6 +2080,7 @@ if __name__ == '__main__':
 	# python 파일명으로 실행한경우에 동작하는 부분만 if문으로 감싸주면 import <함수명>일때 함수가 실행되지 않는다.
 	
 ```
+
 
 * 네임스페이스
 
