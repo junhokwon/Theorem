@@ -1933,8 +1933,8 @@ def bubble_sort(list):
 		
 		for index in range(1,len_list -i):
 		
-		# 전체 리스트 길이 - start_index의 순서를 뺀 범위에서 비교
-		# 큰수부터 맨뒤부터 정렬???
+		# 전체 리스트 길이 - start_index의 순서를 뺀 범위에서 비교!
+		# 큰수는 뒤로 밀려있고 이미 정렬이 되었으니, 앞의 순서들만 조정해주면된다.
 		# ex) start_index = 5 
 		      for 비교값(index) in (1,2)
 		      
@@ -2229,9 +2229,9 @@ cu.show_info()
 ```
 
 
-* 클래스 메서드
+(2) 클래스 메서드
 
-: 클래스 메서드는 클래스 속성에 대해 동작하는 메서드이다. 위의 인스턴스 메서드와 달리 호출 주체가 클래스이며, **첫번째 인자도 `cls`를 사용한다**
+: 클래스 메서드는 **클래스 속성에 대해 동작하는 메서드이다.** **위의 인스턴스 메서드와 달리 호출 주체가 클래스이며, 첫번째 인자도 `cls`를 사용한다**
 
 : 클래스메서드는 `@classmethod 데코레이터`를 붙여 선언하며, 첫번째 인자의 이름은 관용적으로 `cls`를 사용한다.
 
@@ -2241,7 +2241,7 @@ cu.show_info()
         cls.description = description
 ```
 
-* 스태틱메서드 
+(3) 스태틱메서드 
 
 : 스태틱메서드는 클래스 내부에서 정의된 일반 함수이며, 단지 클래스나 인스턴스를 통해서 접근할수 있을뿐 , 해당 클래스나 인스턴스에 영향을 줄수 없다. 스태틱메서드는 `@staticmethod`데코레이터를 붙여 선언
 
@@ -2250,4 +2250,351 @@ cu.show_info()
     def print_type():
         print('hello')
 ```
+
+#속성 접근 지정자
+
+* 캡슐화 : 객체를 구현할 때, 사용자가 반드시 알아야할 데이터나 메서드를 제외한 부분을 은닉시켜, 정해진 방법만을 통해서 객체를 조작할 수 있는 방법
+
+* `change_type` 메서드나 `change_description` 클래스 메서드를 사용하지 않고도, 내부 내용을 바꿀 수 있다.
+
+* 속성 이름을 `__`로 시작하면, 외부에서의 접근을 제한한다. 이 경우를 `private 지정자`라고 한다.
+
+* `shop_type`의 이름을 `__shop_type`으로 바꾸고 외부에서 직접 변경해보는 경우는 shop_type을 바꾸지 못하게 만드는 것이다.
+
+* 실제이름은 `_Shop__shop_type`으로 되어있다. 즉 `_클래스명__속성명`
+
+: 파이썬은 속성을 실제로 사용하지 못하도록 숨기지 않고, 네임 맹글링(name mangling)이라는 기법을 사용한다. 파이썬에서는 문법적으로 `private`데이터에 대한 접근을 막는 법을 제공하지 않는다.
+
+* get/set속성값과 프로퍼티(property)
+
+: 파이썬에서는 지원하지 않으나, 외부에서 접근할 수 없는 `private`객체 속성을 지원한다. 객체에서는 해당속성을 `읽고` `쓰기`위해 `getter`,`setter`메서드를 사용한다.
+
+```
+public
+    : 외부에서 제한없이 접근수정 가능
+protected
+    : 외부에서는 접근 불가능,상속받은 클라스에서는 접근 가능, _(언더바)는 protected로 사용한다고 약속했기에 변수명앞에 _을 사용하지 않는다.
+
+private 
+   : 내부에서만 접근수정 가능
+        -> 외부 접근 가능 하도록 property사용
+
+
+```
+```
+@property
+# 읽기전용
+def name(self):
+	return self.__name
+	
+@name.setter
+# 쓰기전용
+def name(self, new_name):
+	self.__name = new_name
+	print('set new name : {}.format(self.__name))
+```
+: `setter`프로퍼티를 명시하지 않으면, 읽기전용이 되어, 외부에서 조작 할수 없다.
+
+
+
+* 상속
+
+: 약간의 추가적인 기능이 필요한 다른클래스가 필요할 경우, 기존의 클래스를 상속받은 새 클래스를 사용하는 방식
+
+: 상속 되는 클래스(부모(상위))클래스, 상속을 받는 클래스 자식(하위))클래스이다.
+
+```
+class Restaurant(Shop):
+	pass
+	
+: 상속받은 클래스는 부모클래스의 모든 속성과 메서드를 사용할 수 있다.
+```
+
+* 메서드 오버라이드
+
+: 상속받은 클래스에서, 부모클래스의 메서드와는 다른 동작을 하도록 할 수 있다. 이 경우 부모 클래스의 메서드를 덮어쓸 수 있다.
+
+* 부모클래스의 메서드 호출(super)
+
+: 자식클래스 메서드에서 부모클래스에서 사용하는 메서드 전체가 아닌, 부모클래스의 메서드를 호출 후  새로운 작업을 해야 할 경우 `super()`메서드를 사용해서 부모 클래스의 메서드를 직접 호출할 수 있다.
+
+```
+class Restaurant(Shop):
+    def __init__(self, name, shop_type, address, rating):
+        super().__init__(name, shop_type, address)
+        self.rating = rating
+```
+:레스토랑의 클래스에서는 4개의 인자가 들어와야해서 새롭게 초기화 메서드를 만들고 , super()을 사용하여 Shop의 속성 3가지를 들고오고, 나머지 rating을 지정해준다.
+
+
+
+```
+class PCroom(Shop):
+ 	#PCroom클래스를 새로 만들고, Shop이라는 부모클래스를 넣어 상속받는다.
+ 	
+    def __init__(self,name,shop_type,address,price):
+        self.name = name
+        self._shop_type = shop_type
+        # self._shop__shop_type이 실제이름이다.
+        self.address = address
+
+        super().__init__(self,name,shop_type,address)
+        # super()메서드를 사용하여, 부모클래스의 메서드 `__init__`를 가져왔다.
+        self.price = price
+
+    def shop_info(self):
+        print('pc방 : {}\n 유형 : {} \n 주소 : {} \n 가격 : {}'.format(self.name, self._shop_type, self.address,self.price))
+->shop_info메서드에서 상점이 아닌 pc방으로 바꾸었다.
+```
+
+ 
+ * 다형성과 덕 타이핑
+
+: 파이썬은 다형성을 덕 타이핑이라는 방식으로구현
+
+`오리`는 `꽥꽥`하고 우므로, `꽥꽥`하고 우는것은 `오리`로 취급한다.`
+
+: 어떠한 객체에 `울기`라는 메서드가 존재할 떄, `꽥꽥`이라는 결과를 리턴한다면, 해당 객체는 `오리`로 취급된다.
+
+: 다른클래스에 지정된 함수를 가져다 쓰는게 가능하다.
+
+* user,food,drink와 eat을 사용해 다형성 구현
+
+```
+class user():
+	def __init__(self,name):
+		self.name = name
+		
+	def eat_food(self,food):
+		food.eat()
+		#이미 food클래스.eat함수로 실행해놨기에
+		
+	def eat_drink(self,drink):
+		drink.eat()
+
+class something():
+	def __init__(self,name):
+		self.name = name
+	
+		
+class food(something):
+	def eat(self):
+		print('{}을 먹었다. 배가 부르다')
+		
+class drink(something):
+	def eat(self):
+		print('{}을 마셨다. 갈증이 해소된다.')
+		
+user = user('권준호')
+f = food('햄버거')
+d = drink('콜라')
+
+user.eat_food(f)
+user.eat_drink(d)
+
+
+# drink나 food클래스에서 생성된 eat()함수를 user클래스내의 eat_food(),eat_drink()함수에서 가져다 쓰는것이 다형성을 의미하며, 파이썬만 가능, 다른 언어에서는 user클래스에도 eat()함수를 따로 지정해줘야함
+
+```
+: 파이썬에서는 각 객체의 타입과 전혀 상관없이 **해당 객체에서 만든 `같은 이름`의 메서드**들을 실행할 수 있다.
+
+# 정규표현식(Regular Expressions)
+
+: 특정한 패턴에 일치하는 복잡한 문자열을 처리할 때 사용하는 기법
+
+: 표준 모듈 `re`를 사용해서 정규표현식을 사용
+
+```
+import re
+result = re.match('Lux'(패턴), 'Lux, the Lady of Luminosity'(문자열소스))
+```
+
+: 위에서 `match`의 첫 번째 인자에는 `패턴`이 들어가며, 두번째 인자에는 `문자열 소스`, `match()`는 소스와 패턴의 일치여부를 확인
+
+`pattern1 = re.compile('Lux')`
+
+: 컴파일된 패턴객체를 문자열 대신 첫 번째 인자로 사용 가능	
+
+* match : **시작**부터 일치하는 패턴 찾기
+
+```
+import re
+source = 'Lux', 'Lux, the Lady of Luminosity'
+m = re.match('Lux', source)
+if m:
+	print(m.group())
+```
+: `match()`는 시작부분부터 일치하는 패턴만 찾기 때문에, `Lady`라는 패턴으로 찾을 수 없다.
+
+```
+m = re.match('.*Lady',source)
+if m:
+	print(m.group())
+	
+>>>Lux, the Lady
+```
+
+: `.`은 문자 1개를 의미
+
+: `*`은 해당패턴이 0회 이상 올수 있다는 의미
+
+: 따라서  **`.*Lady`는 앞에 아무 문자열 이후 Lady로 끝나는 패턴을 의미**
+
+* search : 첫 번째 일치하는 패턴 찾기
+
+: 문자열 전체에서 일치하는 부분을 찾는다.
+
+```
+m = re.search('Lady',source)
+if m:
+	print(m.group())
+	
+>>> Lady
+```
+
+* findall : 일치하는 모든 패턴 찾기
+
+```
+m = re.findall('y.?.?',source)
+
+>>>['y o', 'y']
+```
+: 끝자리의 `y`는 뒤에 문자가 더 없으므로, `?`을 추가한다. `.`은 문자 1개를 의미,`?`는 0 또는 1회 반복을 사용. **`.?`은 문자가 0 또는 1회 올수 있음을 의미**
+
+* split : 패턴으로 나누기
+
+: 문자열의 split() 메서드와 비슷하지만 패턴을 사용함
+
+```
+m = re.split('o',source)
+>>>
+>>>['Lux, the Lady', 'f Lumin','sity']
+```
+
+* sub = 패턴 대체하기
+
+: 문자열의 `replace()` 메서드와 비슷하지만 패턴을 사용할 수 있다.
+
+```
+m = re.sub('o','!',source)
+>>>
+>>>'Lux, the Lady !f Lumin!ity'
+```
+: 'o'를  '!'로 대체
+
+* 정규표현식의 패턴 문자
+
+패턴 | 문자
+---|---
+\d | 숫자
+\D | 비숫자
+\w | 문자
+\W | 비문자
+\s | 공백 문자
+\S | 비공백 문자
+\b | 단어 경계('',"")
+\B | 비단어 경계('',"")
+
+* 정규표현식의 패턴 지정자
+
+: **expr**은 정규표현식을 말한다.
+
+패턴 | 의미
+---|---
+abc | 리터럴 `abc`
+(expr) | expr
+expr1`|`expr2 | expr1 또는 expr2
+`.`| \n(줄바꿈)을 제외한 모든 문자
+`^`| 소스문자열의 시작
+`$` | 소스문자열의 끝
+expr`?` | 0또는 1회의 expr
+expr`*` | 0회이상의 최대 expr
+expr`*?` | 0회 이상의 최소 expr
+expr`?` | 0또는 1회 반복 expr
+expr`+` | 1회 이상의 최대  expr
+expr`+?` | 1회 이상의 최소 expr
+expr`{m}` | m회의 expr
+expr`{m,n}` | m에서 n회의 최대 expr
+expr`{m,n}?`| m에서 n회의 최소 expr
+[abc] | a or b or c
+[^abc] | nor (a or b or c)
+expr1(?=expr2) | 뒤에 expr2가 오면 expr1에 해당하는 부분
+expr1(!=expr2) | 뒤에 expr2가 오지 않으면, expr1에 해당하는 부분
+(?<=expr1)expr2 | 앞에 expr1이 오면 expr2에 해당하는 부분
+(?<!expr1)expr2 | 앞에 expr1이 오지 않으면, expr2에 해당하는 부분
+
+: `\`로 시작하는 패턴 문자나, 정규표현식에서 `\`를 직접 사용해야 하는 경우, 문자열의 이스케이프 문을 사용하지 않고, 정규식 내에서  `\`로 해석됨을 나타내기 위해 앞에 `r`을 붙인다.
+
+: 정규표현식의 패턴에는 항상 앞에 `r`을 붙인다고 생각하는 것이 좋다.
+
+`re.findall('(?<=she) was',story)`
+: 앞에 she가 오면 was가 해당하는 부분
+
+`re.findall('\w+(?<!she) was',story)`
+
+: 앞의 \w(문자열)이 하나 이상 있고, 앞에 she가 오지 않으면 was가 출력되는 구조
+
+`re.findall(r'\bwas\b',story)`
+
+>>> ['was','was','was']
+
+: : `r`은 정규 표현식 내부내에서 `\`을 나타내기 위해 쓰인다. \b는 단어사이의 경계 ('',"")이고, \B는 비단어 사이의 경계('',"")이다.
+
+
+* 매칭 결과 그룹화
+
+: 정규표현식 패턴중 **괄호로 둘러싸인 부분이 있을경우, 결과는 해당괄호만의 그룹으로 저장**
+
+: Match객체의 `group()`함수는 매치된 **전체 문자열**을 리턴, `groups()`함수는 지정된 그룹 **리스트** 리턴, `group(0)`은 `group()`과 같은 동작을 하며, `group(숫자)`는 매치된 `숫자`번째의 그룹요소를 리턴
+
+```
+s = re.search(r'\w+\w(was)', story)
+s.group()
+s.group(0)
+s.group(1)
+```
+
+`(?P<name>expr)`패턴을 사용하면, 매칭된 표현식 그룹에 이름을 붙여 사용
+
+```
+m = re.search(r'(P<before>\w+)\s+(?P<was>was)\s+(?P<after>\w+)',story)
+
+m.groups()
+m.group('before')
+m.group('was')
+m.group('after')
+
+```
+
+* 최소 일치와 최대 일치
+
+`<html><body><h1>HTML</h1></body></html>`
+
+: 위 항목을 
+`m = re.match(r'<.*>',html)`
+로 검색하면, `.*`표현식이 첫번째 `>`에서 멈추는 것이 아닌 맨 마지막 `>`까지 검색을 진행.
+`*`이나 `+`에 최소일치인 `?`를 붙여주면, 표현식 다음부분에 해당하는 문자열이 처음 나왔을때 그 부분까지만 일치를 시킨다
+
+* 실습
+
+: 항상 어떠한 표현식 뒤에 패턴지정자를 쓴다.
+
+
+(1) {m} 패턴지정자를 사용해서 a로 시작하는 4글자 단어를 전부 찾는다.
+
+`print(re.findall('\sa\w{3}\s', story))`
+
+(2) r로 끝나는 모든 단어를 찾는다.
+
+`print(re.findall('\w*r\s', story))`
+
+(3) a,b,c,d,e중 아무 문자나 3번 연속으로 들어간 단어를 찾는다.
+ex) b[eca]me
+
+
+`print(re.findall('\w*[a-e]{3}\w*', story))`
+
+(4)re.sub를 사용해서 ,로 구분된 앞/뒤 단어에 대해 앞단어는 대문자화 시키고, 뒷단어는 대괄호로 감싼다.
+
+이 과정에서, 각각의 앞/뒤에 before, after그룹 이름을 사용한다.
 
