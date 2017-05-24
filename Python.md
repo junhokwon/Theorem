@@ -1926,6 +1926,8 @@ def bubble_sort(list):
 	
 	for start_index in range(len_list-1):
 	
+		i = start_index
+	
 		#start_index순서를 제외한 list의 범위
 		
 		#list의 길이 -1만큼 반복의 범위  
@@ -1952,7 +1954,7 @@ def bubble_sort(list):
 def bubblesort(x):
 	length = len(x)-1
 	for i in range(length):
-		for j in range(length-i):
+		for j in range(1,length-i):
 			if x[j] > x[j+1]
 				x[j],x[j+1] = x[j+1],x[j]
 	return x
@@ -2392,8 +2394,13 @@ d = drink('콜라')
 user.eat_food(f)
 user.eat_drink(d)
 
+* 다형성을 사용한 경우
 
-# drink나 food클래스에서 생성된 eat()함수를 user클래스내의 eat_food(),eat_drink()함수에서 가져다 쓰는것이 다형성을 의미하며, 파이썬만 가능, 다른 언어에서는 user클래스에도 eat()함수를 따로 지정해줘야함
+user.eat(s)
+user.eat(f)
+user.eat(d)
+
+# eat_food와 eat_drink에는 이미 food클래스.eat함수로 클래스.함수명으로 실행해놨으니, user클래스에서 eat함수를 바로 불러낼 수 있다.
 
 ```
 : 파이썬에서는 각 객체의 타입과 전혀 상관없이 **해당 객체에서 만든 `같은 이름`의 메서드**들을 실행할 수 있다.
@@ -2411,9 +2418,9 @@ result = re.match('Lux'(패턴), 'Lux, the Lady of Luminosity'(문자열소스))
 
 : 위에서 `match`의 첫 번째 인자에는 `패턴`이 들어가며, 두번째 인자에는 `문자열 소스`, `match()`는 소스와 패턴의 일치여부를 확인
 
-`pattern1 = re.compile('Lux')`
+**`pattern1 = re.compile('Lux')`**
 
-: 컴파일된 패턴객체를 문자열 대신 첫 번째 인자로 사용 가능	
+: **컴파일된 패턴객체를 문자열 대신 첫 번째 인자로 사용 가능	**
 
 * match : **시작**부터 일치하는 패턴 찾기
 
@@ -2490,9 +2497,9 @@ m = re.sub('o','!',source)
 \D | 비숫자
 \w | 문자
 \W | 비문자
-\s | 공백 문자
+\s | 공백 문자 : ' food'가 있으면, 공백포함한 문자
 \S | 비공백 문자
-\b | 단어 경계('',"")
+\b | 단어 경계('',"") : '\bwas\b'면  : 공백을 제외한 was
 \B | 비단어 경계('',"")
 
 * 정규표현식의 패턴 지정자
@@ -2532,26 +2539,26 @@ expr1(!=expr2) | 뒤에 expr2가 오지 않으면, expr1에 해당하는 부분
 
 `re.findall('\w+(?<!she) was',story)`
 
-: 앞의 \w(문자열)이 하나 이상 있고, 앞에 she가 오지 않으면 was가 출력되는 구조
+: 앞의 \w(문자열,단어)가 하나 이상 있고, 앞에 she가 오지 않으면 was가 출력되는 구조
 
 `re.findall(r'\bwas\b',story)`
 
->>> ['was','was','was']
+`['was','was','was']`
 
-: : `r`은 정규 표현식 내부내에서 `\`을 나타내기 위해 쓰인다. \b는 단어사이의 경계 ('',"")이고, \B는 비단어 사이의 경계('',"")이다.
+: : `r`은 정규 표현식 내부내에서 `\`을 나타내기 위해 쓰인다. \b는 단어사이의 경계 (' ')이고, \B는 비단어(단어가아닌 문자열) 사이의 경계(' ')이다.
 
 
 * 매칭 결과 그룹화
 
 : 정규표현식 패턴중 **괄호로 둘러싸인 부분이 있을경우, 결과는 해당괄호만의 그룹으로 저장**
 
-: Match객체의 `group()`함수는 매치된 **전체 문자열**을 리턴, `groups()`함수는 지정된 그룹 **리스트** 리턴, `group(0)`은 `group()`과 같은 동작을 하며, `group(숫자)`는 매치된 `숫자`번째의 그룹요소를 리턴
+: Match객체에 내제되어 있는 `group()`함수는 매치된 **전체 문자열**을 리턴, `groups()`함수는 지정된 그룹 **리스트** 리턴, `group(0)`은 `group()`과 같은 동작을 하며, `group(숫자)`는 매치된 `숫자`번째의 그룹요소를 리턴
 
 ```
 s = re.search(r'\w+\w(was)', story)
-s.group()
-s.group(0)
-s.group(1)
+s.group() : 표현식전체
+s.group(0) : 표현식 전체
+s.group(1) : 괄호친 표현식 좌측 첫번째
 ```
 
 `(?P<name>expr)`패턴을 사용하면, 매칭된 표현식 그룹에 이름을 붙여 사용
@@ -2571,9 +2578,9 @@ m.group('after')
 `<html><body><h1>HTML</h1></body></html>`
 
 : 위 항목을 
-`m = re.match(r'<.*>',html)`
+**`m = re.match(r'<.*>',html)`
 로 검색하면, `.*`표현식이 첫번째 `>`에서 멈추는 것이 아닌 맨 마지막 `>`까지 검색을 진행.
-`*`이나 `+`에 최소일치인 `?`를 붙여주면, 표현식 다음부분에 해당하는 문자열이 처음 나왔을때 그 부분까지만 일치를 시킨다
+`*`이나 `+`에 최소일치인 `?`를 붙여주면, 표현식 다음 부분에 해당하는 문자열이 처음 나왔을때 그 부분 까지만 일치를 시킨다**
 
 * 실습
 
@@ -2582,11 +2589,14 @@ m.group('after')
 
 (1) {m} 패턴지정자를 사용해서 a로 시작하는 4글자 단어를 전부 찾는다.
 
-`print(re.findall('\sa\w{3}\s', story))`
+`print(re.findall('\ba\w{3}',story))`
+
 
 (2) r로 끝나는 모든 단어를 찾는다.
 
 `print(re.findall('\w*r\s', story))`
+
+`print(re.findall('\w*r\b',story))
 
 (3) a,b,c,d,e중 아무 문자나 3번 연속으로 들어간 단어를 찾는다.
 ex) b[eca]me
@@ -2596,5 +2606,351 @@ ex) b[eca]me
 
 (4)re.sub를 사용해서 ,로 구분된 앞/뒤 단어에 대해 앞단어는 대문자화 시키고, 뒷단어는 대괄호로 감싼다.
 
-이 과정에서, 각각의 앞/뒤에 before, after그룹 이름을 사용한다.
+이 과정에서, 각각의 앞/뒤에 before, after그룹 이름을 사용하고 , 람다함수로 표현해보시오.
+
+```
+p = re.compile(r'(?P<before>\w+)(?P<between>,\s*)(?P<after>\w+)')
+
+#\w+ : 단어
+
+
+
+컴파일한 변수를 인자로 넣기 위해서는 `\g`라는 그룹화 함수를 통해 사용한다. '\g<name>'
+ 
+
+
+result = re.sub(p, lambda m : '{}, [{}]'.format(m.group(1).upper(),m.group(3)),story)
+
+result = re.sub(p, lambda m : '{}','[{}]'.format(m.group('before).upper(),m.group('after')),story)
+
+```
+#예외처리
+
+: 오류가 발생하면 프로그램은 에러를 출력하며, 강제종료되거나, 원하지 않는 동작을 하기에 이러한 오류를 안전하게 처리하고, 바로 강제종료 되지 않고, 오류 발생 후 처리할 루틴을 실행하고자 할때 예외처리를 사용
+
+```
+try:
+	시도할 코드
+except:
+	에러가 발생했을 경우 실행할 코드
+	
+```
+```
+import ramdom
+
+try:
+l = random.sample(range(10),10)
+    #range(10)범위에서
+    print(l[20])
+    
+except IndexError:
+    print('error')
+    
+try:
+    dict = {'apple' : 'red'}
+    print(dict['yellow'])
+
+except KeyError:
+    print('키오류')
+    
+ ```
+
+* 여러가지 예외를 구분할 경우
+
+
+```
+try:
+	시도할 코드
+except <예외 클래스1>:
+	에러클래스 1에 해당할 때 실행할 코드
+except <예외 클래스2>:
+	에러클래스 2에 해당할 때 실행할 코드
+except <예외 클래스3>:
+	에러클래스 3에 해당할 때 실행할 코드
+	
+```
+
+* 예외사항을 변수로 사용할 경우
+
+```
+try:
+	시도할 코드
+except <예외클래스> as <변수명>:
+	<변수명>을 사용한 코드
+```
+
+* try~else
+
+: `else`문은 `try`이후 예외가 발생하지 않을 경우 실행
+
+```
+try:
+	시도할 코드
+except:
+	예외 발생시 실행 코드
+else:
+	예외가 발생하지 않았을 시 실행할 코드
+```
+
+* try~finally
+
+: `finally`문은 `try`이후 예외가 발생하건 하지않건 무조건 마지막에 실행된다.
+
+* 예외발생시킬경우
+
+:`raise`구문을 사용한다.
+
+* 실습
+
+(1) 정규표현식으로 검사할때 일치하는 패턴이 없을 경우 발생할 NotMatchedException 을 정의
+
+(2) 패턴문자열과 소스문자열을 매개변수로 갖는 search_from_source 함수를 정의하고, re.search에 소스 문자열을 전달했을 때, MatchObject를 찾지 못하면, NotMatchedException을 발생시킴
+
+(3) try~except 구문에서 위 함수를 실행해 예외를 발생시킴 
+
+(4) 위 구문에 else절을 추가해서 예외가 발생하지 않았을 경우의 검색결과를 출력
+
+(5) 위 구문에 finally절을 추가해서 프로그램이 끝났음을 출력
+
+```
+import re
+
+class NotMatchedException(Exception):
+	#내제된 Exception함수를 할당
+
+	def __init__(self,pattern_string, source_string):
+	#인스턴스를 만들기 위한 초기화 메서드
+	self.pattern_string = pattern_string
+	self.source_string = source_string
+	
+	def __str__(self):
+	#문자열 메서드
+		return 'patter "{}" is not matched in source "()"'.format(self.pattern_string,self.source_string)
+		
+
+def search_from_source(pattern_string,source_string):
+	m = re.search(pattern_string, source_string)
+	if m:
+		return m
+	else:
+		raise NotMatchedException(pattern_string, source_string)
+		
+		
+try:
+	#실행해볼 코드 내용
+	
+	source = 'Lux, the Lady of Luminocity'
+	pattern_string = (r'L\w{1}\b')
+	m = search_from_source(pattern_string,source)
+	
+except NotMatchedException as e:
+		print(e)
+		
+else:
+	print('search result : {}'.format(m.group()))
+	
+finally:
+	print('--search end--')
+
+```
+
+# 파일 다루기
+
+: 프로그램이 실행하는 동안 데이터는 휘발성 기억장치(RAM)에 저장되기에, 작업중인 데이터를 저장하거나, 이미 저장되어 있는 데이터를 불러오기 위해서는 하드디스크나 SSD에 파일을 쓰거나 읽는 과정이 필요하다.
+
+* 파일 열기
+
+`변수 = open(파일명,코드)`
+
+: 내장함수  `open()`을 사용하며, 파일명은 파일의 경로를 나타낸다.
+
+* 모드의 첫번째 글자
+
+모드|설명
+---|---
+r|읽기
+w|쓰기(파일이 이미 존재할 경우 덮어쓴다)
+x|쓰기(단, 파일이 존재하지 않을 경우)
+a|추가(파일이 존재할경우, 파일의 끝부터 쓴다.)
+
+* 모드의 두 번째 글자
+
+모드 | 설명
+---|---
+t또는 없음 | 텍스트타입
+b | 이전데이터 타입
+
+* 이진데이터 : 이진형식(0과 1)로 이루어진 텍스트를 제외한 데이터를 말함, 데이터의 구조가 인코딩과 개행문자등 텍스트 형태로 바로 사용할 수 있게 되었다.
+
+* 파일쓰기 : write()
+
+```
+f = open('skills.txt', 'wt')
+
+skills = '''Illumination
+... Light Binding
+... Prismatic Barrier
+... Lucent Singularity
+... Final Spark'''
+
+f.write(skills)
+# skills내용을 가져다 쓰겠다.
+
+>>>75 
+f.close()
+
+```
+
+* 문자열이 클 경우, 일정 단위로 나누어서 파일에 쓰는 방식으로 사용
+
+ ```
+ f = open('skills.txt','wt')
+ size = len(skills)
+ offset = 0
+ chunk = 30
+ while True:
+ 	if offset > size:
+ 		break
+ 	f.write(skills[offset:offset+chunk])
+ 	offset += chunk
+ 	
+```
+
+: ???????????????????
+
+* 텍스트파일 전체 읽기 : read()
+
+`read()`함수는 전체 파일을 한 번에 가져오므로, 메모리 사용에 주의
+
+```
+f = open('skills.txt','rt')
+skills = f.read()
+f.close()
+len(skills)
+```
+
+* 한번에 읽을 크기를 제한하고 싶다면, 인자로 최대 문자수를 입력해준다.
+
+```
+f= open('skills.txt', 'rt')
+chunk = 30
+# 최대문자수 
+while True:
+	part = f.read(chunk)
+	if not part:
+		break
+	skills += part
+
+f.close()
+len(skills)
+
+```
+
+: ?????????????????????????????
+
+* 텍스트파일 줄 단위 읽기 : readline()
+
+```
+skills = ''
+f = open('skills.txt','rt')
+while True:
+	line = f.readline()
+	if not line:
+		break
+	skills += line
+
+f.close()
+len(skills)
+
+```
+
+: 파일을 라인단위로 읽어 문자열에 저장한다.
+빈 라인은(`\n`)은 길이가 1이며, 파일의 끝에서만 완전히 빈 문자열 (`''`)을 리턴한다.
+
+* 이터레이터를 사용한 텍스트 파일 읽기
+
+```
+skills = ''
+f = open('skills.txt','rt')
+for line in f:
+	skills += line
+	
+f.close()
+len(skills)
+
+```
+
+: `readline()`을 호출한 것과 같은 결과를 보인다.
+
+* 텍스트파일을 줄 단위 문자열 리스트로 리턴 : readlines()
+
+```
+f = open('skills.txt','rt')
+lines = f.readlines()
+f.close()
+for line in lines:
+	print(line)
+	
+Illumination
+
+Light Binding
+
+Prismatic Barrier
+
+Lucent Singularity
+
+Final Spark
+
+for line in lines:
+	print(line, end='')
+```
+: 각 줄에 줄바꿈(`\n`) 문자가 있으므로, `print()`함수에  `end`인자를 주어 줄바꿈을 없앨 수 있다.
+
+* 자동으로 파일 닫기 : with
+
+: 연파일을 닫지 않을 경우, 파이썬에서는 해당 파일이 더이상 사용되지 않을때 자동으로 닫아준다.
+
+`with 표현식 as 변수`
+: 위의 구문을 사용하면, `with`문 내부에서 파일을 사용한 후 구문이 종료되면, 파일을 닫아준다.
+
+```
+with open('skills.txt','wt') as f:
+	f.write(skills)
+	
+```
+* 실습
+
+```
+skills = '''Illumination
+Light Binding
+Prismatic Barrier
+Lucent Singularity
+Final Spark'''
+
+len(skills)
+
+f = open('skills.txt','wt')
+f.write(skills)
+f.close()
+
+try:
+	f = open('skills.txt','xt')
+except FileExistsError:
+	print('File is already exists')
+print('program terminate')
+
+f = open('skills.txt', 'rt')
+skills = f.read()
+f.close()
+print(skills)
+
+f = open('skills.txt','rt')
+fl = f.readlines()
+print(fl)
+
+```
+
+
+
+
 
