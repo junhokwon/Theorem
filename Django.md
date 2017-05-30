@@ -301,18 +301,20 @@ admin.site.register(Post)
 
 ![](/Users/mac/projects/images/스크린샷 2017-05-29 오후 3.39.51.png)
 
+작성자로서 `User`사용자 모델의 인스턴스를 가져와 전달해줘야 한다.
+
 `user = User.objects.get(id=1)`
 
 ![](/Users/mac/projects/images/스크린샷 2017-05-29 오후 3.42.44.png)
 
 * 데이터베이스에 새로운 포스트 생성하기
 
-
 `Post.objects.create(title = 'Text Title', text = 'Test text', author=user)`
 
 * 필터링하기
 
 : 쿼리셋의 중요한 기능은 데이터를 필터링하는 것이다. 
+
 
 ![](/Users/mac/projects/images/스크린샷 2017-05-29 오후 3.46.39.png)
 
@@ -377,9 +379,312 @@ admin.site.register(Post)
 : 완성본 : `{{ title }},{{ post.published_date }}, {{ post.title }}, {{  post.text  }}`
 
 ![](/Users/mac/projects/images/스크린샷 2017-05-29 오후 4.41.37.png)
-: Post의 published_date가 timezone.now()보다 작은 값을 가질때만 해당하도록 필터를 사용한다.
 
-![](/Users/mac/projects/images/스크린샷 2017-05-29 오후 4.44.05.png)
+`Post의 published_date가 timezone.now()보다 작은 값을 가질때만 해당하도록 필터를 사용한다.`
 
+`context의 딕셔너리에 대한 값에 객체인(posts)를 할당해서 HTML파일에서 중괄호 
+{{ title }}{{ post.title }}을 넣을수 있다.`
+
+
+* 부트스트랩 적용하기
+
+
+: 부트스트랩을 설치하고 압축을 푼 폴더를 `bootstrap`으로 이름명을 바꾸고, `django_app폴더` 안에 `static폴더`를 만들고, `bootstrap`으로 이름을 바꾼 파일을 `static폴더`안에 넣는다.
+
+
+![](/Users/mac/projects/images/스크린샷 2017-05-30 오전 10.54.22.png)
+
+:`{% load staticfiles %}`
+: href ="`{% static 'bootstrap/css/bootstrap.css %}`"
+
+: `{%`은 붙어 있어야한다.
+
+![](/Users/mac/projects/images/스크린샷 2017-05-30 오후 8.51.19.png)
+
+`STATIC_DIR = os.path.join(BASE_DIR,'static')` : STATIC_DIR이라는 변수에 django_app/static폴더의 경로를 할당
+
+
+![](/Users/mac/projects/images/스크린샷 2017-05-30 오전 11.06.55.png)
+
+
+`STATIC_URL = /'static'/` : 이 경로로 시작하는 url은 정적파일들의 위치에서 파일을 찾아 리턴
+
+
+`STATICFILES_DIR = ( STATIC_DIR,)` : django_app/static경로를 `STATIC_DIR`이라는 객체에 할당했고, `STATICFILES_DIR`폴더는 `static_url`로 요청된 파일을 찾는데 사용 ????
+
+
+
+
+
+: body문안에 
+
+`<div class="container">내용</div>`으로 감싸준다.
+
+![](/Users/mac/projects/images/스크린샷 2017-05-30 오전 11.15.10.png)
+
+
+
+![](/Users/mac/projects/images/스크린샷 2017-05-30 오전 11.26.02.png)
+![](/Users/mac/projects/images/스크린샷 2017-05-30 오전 11.18.52.png)
+![](/Users/mac/projects/images/스크린샷 2017-05-30 오전 11.52.10.png)
+
+
+
+# TEMPLATE 확장(post_detail 만들기)
+
+
+![](/Users/mac/projects/images/스크린샷 2017-05-30 오후 12.00.52.png)
+
+`url(r'^post/\d+/$', views.post_detail),` : post_detail이라는 이름의 url의 정규표현식이다.
+
+![](/Users/mac/projects/images/스크린샷 2017-05-30 오후 12.04.47.png)
+
+: `post_detail_html`에서 for문 삭제
+
+
+
+![](/Users/mac/projects/images/스크린샷 2017-05-30 오후 12.21.00.png)
+
+
+* 겹치는 부분 base.html만들기
+
+(1) base.html
+
+![](/Users/mac/projects/images/스크린샷 2017-05-30 오후 12.24.35.png)
+
+```
+{% block content %}
+	- 내용 - 
+{% endblock %}
+
+```
+
+(2) post_list.html
+
+![](/Users/mac/projects/images/스크린샷 2017-05-30 오후 12.27.24.png)
+
+```
+{% extend blog/base.html %}
+
+{% block content %}
+	추가할 내용
+{% enddblock %}
+```
+
+![](/Users/mac/projects/images/스크린샷 2017-05-30 오후 12.33.23.png)
+
+```
+{% extend blog/base.html %}
+
+{% block content %}
+	추가할 내용
+{% enddblock %}
+```
+
+
+
+![](/Users/mac/projects/images/스크린샷 2017-05-30 오후 12.38.48.png)
+
+:`/post/{{ post.pk }}/` : post에 있는 title을 누르면 `post_detail.html파일`을 불러온다. post_detail.html은 `urls.py`에  `url(r'^post/(?P<pk>\d+)/$', views.post_detail, name='post_detail')`은 url이름을 `post_detail`로 주었다.
+
+![](/Users/mac/projects/images/스크린샷 2017-05-30 오후 12.41.31.png)
+
+`url(r'^$', views.post_list, name='post_list'),`
+
+`url(r'^post/(?P<pk>\d+)/$', views.post_detail, name='post_detail')`
+
+: **장고 탬플릿에서  url을 쓰기 위해서는, name명을 주어야 한다.**
+
+![](/Users/mac/projects/images/스크린샷 2017-05-30 오후 12.44.33.png)
+
+![](/Users/mac/projects/images/스크린샷 2017-05-30 오후 12.45.34.png)
+
+`{% url 'post_detail' pk=post.pk %}`
+
+: name에 대한 인자를 줘야 하기에 `pk=post.pk`를 넣어야 한다.
+`def post_detail(request,pk):`에 매개변수 pk가 있어서 실행인자로 
+`pk = post.pk`를 주어야한다.
+
+# 장고폼(글 쓰기 화면 만들기)
+
+
+![](/Users/mac/projects/images/스크린샷 2017-05-30 오후 2.21.21.png)
+
+: `urls.py` post_create라는 이름의 url에 정규표현식을 써준다.
+
+![](/Users/mac/projects/images/스크린샷 2017-05-30 오후 2.24.55.png)
+
+: `views.py`에 `post_create(request)`함수를 만들어준다.
+
+![](/Users/mac/projects/images/스크린샷 2017-05-30 오후 2.36.31.png)
+
+: `post_create.html`파일내의 내용
+
+![](/Users/mac/projects/images/스크린샷 2017-05-30 오후 2.37.13.png)
+
+`크로스 사이트간 요청위조 (CSRF)`: 로그인한상태에서 url과 똑같은 사이트를 만들어서 실제서버에 요청하는것, 사용자들에게 html파일을 조작해서 보여줌,사이트를 해킹해서 url요청을 바꿈 
+
+`방안` : 특정`키에 대한 값`을 보내서 값이 돌아와야지만 반응함
+
+![](/Users/mac/projects/images/스크린샷 2017-05-30 오후 2.44.09.png)
+
+: `{% csrf_token %}`사용
+
+![](/Users/mac/projects/images/스크린샷 2017-05-30 오후 2.40.58.png)
+
+`get요청 : url에 조회(현재페이지 보여줌)`
+
+`post요청 : 서버에 데이터를 변하게 하고 싶을때,
+해당 request의 메서드에 따라 구분함`
+
+![](/Users/mac/projects/images/스크린샷 2017-05-30 오후 2.45.21.png)
+
+`input name='title' type='text'`로 변환
+
+![](/Users/mac/projects/images/스크린샷 2017-05-30 오후 2.49.21.png)
+
+`딕셔너리에서  name은 키로 변환됨 `
+
+![](/Users/mac/projects/images/스크린샷 2017-05-30 오후 2.52.54.png)
+
+![](/Users/mac/projects/images/스크린샷 2017-05-30 오후 2.58.05.png)
+
+: 상단내용추가
+
+![](/Users/mac/projects/images/스크린샷 2017-05-30 오후 3.00.38.png)
+
+: `redirect` 작성이완료된 후 작성된 페이지로 되돌려준다.
+
+![](/Users/mac/projects/images/스크린샷 2017-05-30 오후 3.04.59.png)
+
+`posts = Post.objects.order_by('-created_date')`
+
+
+
+
+
+
+# form요소 동적으로 만들기 
+
+: 장고코드를 활용하기위해서 `blog안에 forms.py`를 생성
+
+![](/Users/mac/projects/images/스크린샷 2017-05-30 오후 3.48.34.png)
+`required`속성이 추가하면 내용이 써지기전까지는 넘어가지 않는다.
+`class postCreateForm(forms.Form)`은 `forms(내장함수)`에서 `Form클래스`에 있는 내용을 호출하는것이다.
+
+![](/Users/mac/projects/images/스크린샷 2017-05-30 오후 3.41.12.png)
+
+: 모듈이나 함수의 경로를 호출하고자 하는 함수에 커서를 두고 `alt+enter`
+
+![](/Users/mac/projects/images/스크린샷 2017-05-30 오후 6.36.43.png)
+
+
+
+
+
+
+`def post_create(request):`
+` if request.method == 'GET':` `get`요청을 받을떄
+`form = PostCreateForm()` : `form`이라는 인스턴스안에 `forms.py`에서 만들어준 `PostCreateForm()`클래스를 할당
+
+`context = { 'form' : form, } `:은 form이라는 인스턴스를 딕셔너리의 키에대한 값으로 할당함, 실행하는것은 `'form'`인 키값이다.
+
+`return render(request, 'blog/post_create.html', context=context)`
+
+: `render함수는`  `Returns a HttpResponse whose content is filled with the result of calling` : 즉 요청에 대한 결과값에 대한 내용에 대한 응답을 리턴하는 함수, 즉 post_create.html파일에 context에 속해있는 내용들을 가지고 요청에 응답하겠다.
+
+![](/Users/mac/projects/images/스크린샷 2017-05-30 오후 8.26.52.png)
+
+: `post_create.html`에서 `vims.py`에 있는 `context`에 할당해줬던 인스턴스(form = PostCreateForm())에 대한 키값은 `{{ field.label_tag }}` `{{ field }}`라고 표현할수 있다.
+
+![](/Users/mac/projects/images/스크린샷 2017-05-30 오후 3.49.23.png)
+: `required`속성이 추가하면 내용이 써지기전까지는 넘어가지 않는다.
+
+# 폼 검증하기
+
+
+
+
+
+
+
+
+
+
+
+
+![](/Users/mac/projects/images/스크린샷 2017-05-30 오후 3.56.05.png)
+
+: `post_create`의 함수의 뒷부분을 추가한다.
+`elif request.method == 'POST'` : 요청의 방법이 POST라면,
+
+
+
+
+
+
+
+: `form = PostCreateForm(request.POST)`는 request.POST를 매개변수로 하여 form이라는 인스턴스로 저장
+
+`if form.is_valid():` : `#Form인스턴스`의 유효성을 검사하는 `is_valid()메서드`
+            
+`return redirect('post_detail', pk=post.pk)` : 유효성 검사를 통과하지 못했을경우 error가 담긴 form을 이용해 기존페이지를 보여줌
+        
+* 유효성검사(max_length = 10이라고 클래스안에 설정)
+
+
+![](/Users/mac/projects/images/스크린샷 2017-05-30 오후 3.56.50.png)
+
+
+
+
+* 박스만들기
+
+![](/Users/mac/projects/images/스크린샷 2017-05-30 오후 4.29.38.png)
+
+: `forms.py`에서 `PostCreateForm`클래스를 생성할시 title이라는 인스턴스, text라는 인스턴스안에 상단의 내용을 넣어준다.
+
+
+
+
+# 폼 수정하기
+
+
+![](/Users/mac/projects/images/스크린샷 2017-05-30 오후 4.43.42.png)
+
+: `url.py`에서 url안의 정규표현식 변경
+`url(r'^post/(?P<pk>\d+)/modify/$', views.post_modify, name='post_modify')`
+
+: 'post_modify'라는 이름, 상단의 정규표현식 url이 있다면, `views(장고의 컨트롤러)`에서 만든 `post_modify`라는 이름의 함수로 보내는것이다. 어떠한 url을 처리하는 곳은 `views.py`이다.
+
+
+![](/Users/mac/projects/images/스크린샷 2017-05-30 오후 4.55.51.png)
+
+
+: `post`요청을 할 경우는, 어떠한 내용들을 바꾸기 위해 요청하는 것으로 `if request.method == POST:`문을 사용, 요청의 방식은 2가지로 `POST`와 `GET`요청이며, `request.method` 라는 형식을 사용한다.
+
+: `views.py`에서 `post_modify`함수를 만들어준다. 매개변수는 `(request)`,`(pk)`를 선언한다. `pk`를 선언하는 이유는 수정할 내용의 페이지들에 할당한 pk값에 해당하기 때문이다.
+
+`post(인스턴스) = Post.objects.get(pk=pk)`
+: `models.py`에서 만든 `Post`라는 클래스에 있는 모든 값들중에 pk=pk에 해당하는 값을 가져와서 post(인스턴스)에 할당하겠다.
+
+`data = request.POST` : post요청(request)(어떠한값을 바꾼다는 의미)가 올경우, 전달받은 데이터를 	`data`라는 인스턴스에 할당하겠다.
+
+`title = data['title']`,`text = data['text']` : 전달받은 데이터의 인스턴스 `data`에서 `name`을 title,text라고 써준 값들을 사용한다.
+
+`post.title = title`,`post.text = text` : `post.title/text`는 post요청을 한 데이터들의 title,text라는 이름의 값에 덮어씨우겠다.
+
+`post.save` : DB에 업데이트 하는 save()메서드
+`return redirect('post_detail', pk=post.pk)` : 기존 post인스턴스를 업데이트 한 후, 다시 글 상세화면으로 이동
+
+
+
+![](/Users/mac/projects/images/스크린샷 2017-05-30 오후 5.14.00.png)
+
+`post_modify`의 html파일은 수정해서 덮어줄 내용을 쓰는것이다.
+`<button type ='submit', class = 'btn btn-primary btn-block'>내용</button>` : 부트스트랩에서 버튼형식 만드는 방법
+
+
+`<input_type = 'text', name = 'title', value = '{{ post.title }}'>`에서 value의 값에 `{{ post.title }}`넣어준다.?
 
 
