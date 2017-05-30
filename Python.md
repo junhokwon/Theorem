@@ -2,7 +2,7 @@
 
 # pyenv
 
-: pyenv는 프로젝트 별로 파이썬 버전을 따로 관리할 수 있도록 도와주는 라이브러리, 각각에 설치된 라이브러리간 충돌이 일어날 수도 있다.
+: pyenv는 프로젝n트 별로 파이썬 버전을 따로 관리할 수 있도록 도와주는 라이브러리, 각각에 설치된 라이브러리간 충돌이 일어날 수도 있다.
 
 * virtualenv : 파이썬 개발환경을 프로젝트별로 분리해서 관리할 수 있게 해주는 라이브러리이다. pyenv와 다른점은, pyenv는 파이썬의 버전을 관리해주는 것이며, virtualenv는 파이썬 패키지 설치 환경을 따로 관리해 주는것이다. 
 
@@ -134,7 +134,8 @@ for x in range(6):
 [(x,y) for x in range(6) for y i range(3)]
 
 
-* 1, 2번의 반복문에서 튜플의 첫 번째 항목이 짝수일때만 출력하도록 조건을 변경한다.
+* 1, 2번의 반복문에서 튜
+* 튜플의 첫 번째 항목이 짝수일때만 출력하도록 조건을 변경한다.
 
 [(x,y) for x in range(6) for y in srange(3) if x % 2 ==0]
 
@@ -2596,7 +2597,7 @@ m.group('after')
 
 `print(re.findall('\w*r\s', story))`
 
-`print(re.findall('\w*r\b',story))
+`print(re.findall('\w*r\b',story))`
 
 (3) a,b,c,d,e중 아무 문자나 3번 연속으로 들어간 단어를 찾는다.
 ex) b[eca]me
@@ -2619,7 +2620,7 @@ p = re.compile(r'(?P<before>\w+)(?P<between>,\s*)(?P<after>\w+)')
  
 
 
-result = re.sub(p, lambda m : '{}, [{}]'.format(m.group(1).upper(),m.group(3)),story)
+result = re.sub(p, lambda m : '{}', '[{}]'.format(m.group(1).upper(),m.group(3)),story)
 
 result = re.sub(p, lambda m : '{}','[{}]'.format(m.group('before).upper(),m.group('after')),story)
 

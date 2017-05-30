@@ -708,17 +708,19 @@ add html/css theorem
 	- 일반형제 선택자 : 모든 동생요소를 지정
 
 
-(7) 속성선택자
 
-	패턴|의미
-	----|----
-	E[attr]|attr속성이 포함된 요소 E
-	E[attr="val"]| attr속성의 값이 val인 요소
-	E[attr~="val"]| attr속성의 값에 val이 포함되는 요소 E(공백으로 분리된 값이 일치	해야함/띄어쓰기 주의)
-	E[attr|="val"]|attr속성의 값에 val이 포함되거나 val-로 시작되는 요소 E
-	E[attr^="val"]|attr속성의 값이 val로 시작되는 요소
-	E[attr$="val"]|attr속성의 값이 val로 끝나는 요소
-	E[attr*="val"]|attr속성의 값에 val이 포함되는 요소(공백이나 dash(-)에 영향받지 	않음
+
+
+(7) 속성선택자
+패턴|의미
+----|----
+E[attr]|attr속성이 포함된 요소 E
+E[attr="val"]| attr속성의 값이 val인 요소
+E[attr~="val"]| attr속성의 값에 val이 포함되는 요소 E(공백으로 분리된 값이 일치해야함/띄어쓰기 주의)
+E[attr|="val"]|attr속성의 값에 val이 포함되거나 val-로 시작되는 요소 E
+E[attr^="val"]|attr속성의 값이 val로 시작되는 요소
+E[attr$="val"]|attr속성의 값이 val로 끝나는 요소
+E[attr*="val"]|attr속성의 값에 val이 포함되는 요소(공백이나 dash(-)에 영향받지 	않음
  
 (8)가상 클래스 선택자
  
@@ -979,6 +981,8 @@ width: 30px;  text-align: center;
 -
 
 #실습 
+
+
 
 
 <style>
@@ -1494,7 +1498,7 @@ font-weight: bold;  color: white;  padding: 5px 20px;
 
 
 
-	(5) 변수는 '$'를 사용하여 지정한다
+(5) 변수는 '$'를 사용하여 지정한다
 
 
 	$padding: 10px;   

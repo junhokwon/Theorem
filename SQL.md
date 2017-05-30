@@ -806,7 +806,6 @@ SELECT * FROM Customers;
 
 -
 
-#SQL문제
 
 
 
