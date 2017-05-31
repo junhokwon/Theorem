@@ -106,7 +106,7 @@
 : 컨트롤 c : 끄기
 
 
-(14) 어플리케이션 만들기
+# 어플리케이션 만들기
 
 : 프로젝트 내부에 별도의 애플리케이션을 만들기,
 
@@ -164,7 +164,7 @@ djangogirls
 
 `def publist(self):`는 `publish`라는 메서드다. `__str__`메서드를 호출하면, `return self.title`는 post 모델의 제목 텍스트(string)을 얻게된다.
 
-(17) 데이터베이스에 모델을 위한 테이블 만들기
+# 데이터베이스에 모델을 위한 테이블 만들기
 
 : 데이터베이스에 우리의 새모델 `post` 모델을 추가한다.
 
@@ -241,7 +241,7 @@ admin.site.register(Post)
 
 : view.py에 이렇게 내용을 수정한다. `render함수 사용`
 
-* 정규표현식
+# 정규표현식
 
 `^post/(\d+)/$`
 
@@ -275,7 +275,7 @@ admin.site.register(Post)
 
 ![](/Users/mac/projects/images/스크린샷 2017-05-29 오후 3.22.19.png)
 
-* 장고 ORM과 쿼리셋
+# 장고 ORM과 쿼리셋
 
 장고쉘
 `./manage.py shell`
@@ -307,11 +307,11 @@ admin.site.register(Post)
 
 ![](/Users/mac/projects/images/스크린샷 2017-05-29 오후 3.42.44.png)
 
-* 데이터베이스에 새로운 포스트 생성하기
+# 데이터베이스에 새로운 포스트 생성하기
 
 `Post.objects.create(title = 'Text Title', text = 'Test text', author=user)`
 
-* 필터링하기
+# 필터링하기
 
 : 쿼리셋의 중요한 기능은 데이터를 필터링하는 것이다. 
 
@@ -350,7 +350,7 @@ admin.site.register(Post)
 [<Post : Test title>]`
 
 
-* 데이터 전달
+# 데이터 전달
 
 ![](/Users/mac/projects/images/스크린샷 2017-05-29 오후 4.15.18.png)
 
@@ -386,7 +386,7 @@ admin.site.register(Post)
 {{ title }}{{ post.title }}을 넣을수 있다.`
 
 
-* 부트스트랩 적용하기
+# 부트스트랩 적용하기
 
 
 : 부트스트랩을 설치하고 압축을 푼 폴더를 `bootstrap`으로 이름명을 바꾸고, `django_app폴더` 안에 `static폴더`를 만들고, `bootstrap`으로 이름을 바꾼 파일을 `static폴더`안에 넣는다.
@@ -410,7 +410,7 @@ admin.site.register(Post)
 `STATIC_URL = /'static'/` : 이 경로로 시작하는 url은 정적파일들의 위치에서 파일을 찾아 리턴
 
 
-`STATICFILES_DIR = ( STATIC_DIR,)` : django_app/static경로를 `STATIC_DIR`이라는 객체에 할당했고, `STATICFILES_DIR`폴더는 `static_url`로 요청된 파일을 찾는데 사용 ????
+`STATICFILES_DIR = ( STATIC_DIR,)` : django_app/static경로를 `STATIC_DIR`이라는 객체에 할당했고, `STATICFILES_DIR`폴더는 `static_url`로 요청된 파일을 찾는데 사용 : `STATICLFIELS_DIR`는 스태틱 경로(STATIC_URL)를 한 곳에모아주는 역할을 한다.
 
 
 
@@ -685,6 +685,103 @@ admin.site.register(Post)
 `<button type ='submit', class = 'btn btn-primary btn-block'>내용</button>` : 부트스트랩에서 버튼형식 만드는 방법
 
 
-`<input_type = 'text', name = 'title', value = '{{ post.title }}'>`에서 value의 값에 `{{ post.title }}`넣어준다.?
+`<input_type = 'text', name = 'title', value = '{{ post.title }}'>`에서 value의 값에 `{{ post.title }}`넣어준다.
+
+# HTML 폼양식
+
+(1) 폼(Form)양식
+
+`<FORM ACTION="URL" METHOD=POST NAME="FORM_NAME">`
+
+:폼태그의 가장 중요한 속성은 action과 method이다. `action`은 폼이 전송되었을때, 넘어가는 페이지의 url을 나타내는것이며, `method`는 폼의 데이터를 전송하는 방법을 정의한 곳이다.
+
+![](/Users/mac/projects/images/스크린샷 2017-05-31 오후 5.30.08.png)
+
+(2) INPUT양식
+
+: 사용자가 입력할 수 있는 입력 필드를 만들때 사용한다.
+
+`<INPUT TYPE="INPUT_TYPE" NAME="INPUT_NAME" VALUE="INPUT_VALUE">`
+
+: `type`은 입력필드의 `모양`을 결정하는 가장 중요한 키워드, `name`은 입력필드를 구분하여 주는 이름(데이터베이스에 저장될때 `input type = 'name'`에서 `name`이 딕셔너리의 키값이 된다.)
+
+(1) 일반 텍스트 상자
+
+`<input type="text" name=textbox1 size="50" maxlength="80" value="일반 텍스트 상자">`
+
+: 일반 텍스트 상자에서는 `size`로 상자의 크기를 결정, `maxlength`로 최대입력길이 설정, `value` : 초기값의 입력이 필요할 경우,
+
+(2) 패스워드 상자
+
+: 사용자가 텍스트를 입력하면 자동으로 (*)로 변환되어 입력하게 된다.
+
+`<input type="password" name="password1" size="10" maxlength="10">`
+
+(3) 체크박스
+
+: 사용자의 선택여부를 나타내기 위한 상자를 나타낸다. 보통 YES/NO의 질문을 위해 사용하며, 체크박스라고 한다.
+
+`<input type="checkbox" name="checkbox1" value="checkbox_value" checked>`
+
+: 체크박스는 	`type`에 `checkbox`의 입력으로 구현된다. `name`은 체크박스의 이름을 나타내며, `value`는 체크박스가 가지는값을 의미한다. `checked`속성은 체크박스가 처음 실행될 때 체크되어 있는 상태로 나타낼때 사용
+
+(4) 라디오 버튼
+
+: 많은 옵션들중 하나를 선택할때 사용, 작은 원모양의 버튼이 나타나 사용자가 선택할 수 있도록 제공
+
+`<input type="radio" name="radio1" value="radio_value" checked>`
+
+: 여러개의 라디오 버튼을 사용할 때에는 `name`값은 동일하게 사용, `value`값을 다르게 입력하여 구분
+
+(5) 이미지
+
+: 선택된 이미지의 좌표값을 반환하고자 할때 사용
+`<input type="image" name="image1" src="이미지경로" >`
+
+(6) HIDDEN
+
+: 브라우저에 의해 출력되지 않는 입력폼.
+
+`<input type="hidden" name="hidden1" value="hidden_value">`
+
+: input타입으로 서버에서 Request값으로 저장된 값은 전송 받지만, 사용자게는 보이지 않는 입력 폼이다. 주로 **서버에서 처리할 페이지로 변수나 데이터값을 전송할때 사용**
+
+(7) 버튼
+
+: 사용자가 클릭할 수 있는 버튼을 나타내고자 할때 사용
+
+`<input type="button" name="button1" value="버튼">`
+
+: 회색 버튼이 표시, `value`에 있는 값이 버튼의 `caption`문자로 나타난다.
+
+(8) 서브밋
+
+: 폼을 전송하는데 사용하는 버튼이다.
+
+`<input type="submit" name="submit1" value="전송하기">`
+
+: 입력필드에 입력되어 있는 값들을 `<form>`태그에서 정의된 action파일로전송하는 버튼, `등록버튼으로 사용 `
+
+(9) 리셋
+
+: 폼에 입력되어 있는 값들을 초기화하는 버튼
+
+`<input type="reset" name="reset1" value="취소">`
+
+: 주로 취소버튼으로 사용
+
+# 폼 삭제기능
+
+(1) post_detail.html
+
+![](/Users/mac/projects/images/스크린샷 2017-05-31 오후 8.42.08.png)
+
+(2) views.py
+
+![](/Users/mac/projects/images/스크린샷 2017-05-31 오후 8.45.37.png)
+
+(3) urls.py
+
+![](/Users/mac/projects/images/스크린샷 2017-05-31 오후 8.46.10.png)
 
 
