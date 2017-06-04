@@ -68,6 +68,8 @@
 
 `git remote add origin git주소`
 
+` git commit -m 'initial commit'`
+
 `git push -u origin master`
 
 
@@ -778,10 +780,24 @@ admin.site.register(Post)
 
 (2) views.py
 
-![](/Users/mac/projects/images/스크린샷 2017-05-31 오후 8.45.37.png)
+![](/Users/mac/projects/images/스크린샷 2017-06-01 오후 5.33.31.png)
+
+: a링크가 아닌 `button`을 써야 한다. 무조건 `post`요청을 받아야지만 수정을 하거나, 글을 쓰거나, 삭제를 하거나 동일하다. `post`요청을 처리할수 있도록 `html`문장에 `form`요소를 활용하여 `method`를 무조건 `POST`로 사용한다. `<form action=요청을 보내고자 하는 경로", method="POST">`
 
 (3) urls.py
 
 ![](/Users/mac/projects/images/스크린샷 2017-05-31 오후 8.46.10.png)
+
+# GET요청과 POST요청의 차이
+
+* GET요청 : 해당 요청을 몇번 수행해도 해당요청에 대한 결과가 계속 돌아오는것
+
+* POST요청 : 해당 요청이 수행되면, 서버에서 무언가 바뀌고, 동일한 결과가 돌아오는것을 보장 할 수 없다는 것을 의미,글을 쓴다는 것은 서버에 데이터가 바뀌고, 다른결과가 돌아올 수 있다는 의미
+
+: `post`요청이나 `get`요청이나 코드가 돌아가기는 하나, `get`요청은 url에 모든값이 보인다.
+
+
+
+
 
 
