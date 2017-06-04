@@ -1,7 +1,7 @@
 # `Django_docs_tutorial`
 
 
-#django basic settings
+# django basic settings
 
 * 장고에서 함수(view)는 컨트롤러이다.
 
@@ -366,10 +366,11 @@ Question.objects.get(pub_date__year=current_year) >> True
 ```
 
 : 새로운 선택만들기(`choice_set.create`명렁어), 
-`Choice`클래스에서 만든 속성 `choice_text`,`votes`에 값을 할당한다. `Choice.objects.create(question = q)`와 `choice_set.create`는 같은 의미이다.
+`Choice`클래스에서 만든 속성 `choice_text`,`votes`에 값을 할당한다. 
+**`Choice.objects.create(question = q)`와 `choice_set.create`는 같은 의미이다.**
 
 `c.question`
-: 아까 만든 Choice클래스의 모든속성을 c라는 인스턴스에 담은다음 `Choice`클래스속성중 하나인 `question`속성을 실행시킨다.`question`속성은 ForeginKey함수로 `Question`클래스와 연결되어 있다.
+: 아까 만든 Choice클래스의 모든속성을 c라는 인스턴스에 담은다음 `Choice`클래스 속성중 하나인 `question`속성을 실행시킨다.`question`속성은 ForeginKey함수로 `Question`클래스와 연결되어 있다.
 
 `q.choice_set.all()` : 아까 만든 q인스턴스에 들어있는 모든 쿼리셋(값)들을 보여주는 명령어
 
@@ -452,7 +453,7 @@ def index(request):
     return HttpResponse(output)
    
 ```
-: 게시된 순서 5개의 질문을
+: 게시된 순서대로 5개의 질문을 가져와라.
 
 : `', '.join([q.question_text for q in latest_question_list])` : 쉼표로 구분하여 리스트화한다.
 
@@ -497,6 +498,26 @@ def index(request):
 
 * `render`함수를 사용하면 `loader`와 `httpResponse`를 사용할 필요가 없다.
 
+* 템플릿 경로 설정
+
+`TEMPLATE_DIR =os.path.join(BASE_DIR,'templates')`
+
+: `join`함수를 활용하여 `BASE_DIR`의경로는 `Users/mac/projects/django/django_docs/django_app`까지이고 `template`까지의 경로를 합쳐서 `TEMPLATE_DIR`경로로 할당한다.
+
+```
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [
+            TEMPLATE_DIR,
+```
+
+: `TEMPLATE_DIR`에 경로를 할당하고, `TEMPLATES`의 `DIRS`에 넣어준다. 경로를 설정해주는 이유는 `render`함수에 `templates/polls/index.html`에서 `templates`를 생략하기 위한것이다. 
+
+
+`polls/views.py`
+
+
 ```
 from django.shortcuts import render
 
@@ -527,7 +548,7 @@ def detail(request, question_id):
     return render(request, 'polls/detail.html', {'question': question})
 ```
 
-: 404에러 수정
+: 404에러를 설정하는 이유는 `polls/300`이렇게 아무숫자가 올때 오류가 생기기에 `try,except`구문을 활용하여 만들어준다.
 
 ```
 from django.shortcuts import get_object_or_404, render
@@ -602,7 +623,7 @@ urlpatterns = [
 </form>
 ```
 
-: 
+
 
 (1) 폼(Form)양식
 
@@ -621,7 +642,7 @@ urlpatterns = [
 `<input type="radio" name="radio1" value="radio_value" checked>`
 : 여러개의 라디오 버튼을 사용할 때에는 `name`값은 동일하게 사용, `value`값을 다르게 입력하여 구분,`id`값은 자바스크립트적용할때 필요
 
-`id="choice{{ forloop.counter }}"` : id에 들어가는 값은 안써도 상관 없다. `label for`의 id값과 일치해주기 위한것이다. value값은 라디오 버튼을 구분하기 위해서 달아준다.
+`id="choice{{ forloop.counter }}"` : `forloop.counter` 순회하면서 선택지에 인덱스값을 부여함(선택한 수를 누적), `id`에 들어가는 값은`label for`의 값과 일치해주기 위한것이다. 즉 버튼을 누르지 않고, 텍스트를 눌러도 체크가 되게 만드는 것이다. value값은 라디오 버튼을 구분하기 위해서 달아준다. 
 
 ```
 <input type="radio" name="choice" id="choice{{ forloop.counter }}" value="{{ choice.id }}" />
@@ -633,7 +654,48 @@ urlpatterns = [
 `polls/views.py`
 
 ```
-from django.shortcuts import get_object_or_404, render
+(1) def vote(request,question_id):
+    if request.method == 'POST':
+        data = request.POST
+        try:
+            choice_id = data['choice']
+            choice = Choice.objects.get(pk=choice_id)
+            choice.votes += 1
+            choice.save()
+            return redirect('polls:result',question_id)
+        except (KeyError, Choice.DoesNotExist):
+        # message 프레임워크를 사용
+        # request메세지를 저장해놓고
+        # 해당 request에 대한 response를 돌려줄때 메세지를 담아 보낸다.
+            messages.add_message(
+                request,
+                messages.ERROR,
+                '너는 선택하지 않았다.'
+            )
+            return redirect('polls:detail', question_id)
+    else:
+        return HttpResponse('너는 질문에 대해 투표중이다. %s.' % question_id)
+
+```
+
+: `post`요청을 `data`라는 인스턴스에 할당하고, `data['choice']` : `choice`라는 이름의 키에 대한 값(`choice.id`)을 `choice_id`라는 객체에 넣어준다.` 
+
+`detail.html`에서 만든 `<input type="radio" name="choice" id="choice{{ forloop.counter }}" value="{{ choice.id }}" >` 에서 name은 `choice` value는 `choice.id`로 주었는데, 말그래도 딕셔너리의 키와 값이다. 즉 `{choice : choice.id}`와 같은 의미이다. 그리고 `Choice`클래스에서 `pk=choice_id`라는 객체를 가져와서 `choice`라는 객체에 할당하고, `인스턴스.속성(votes)`을 불러와서 `+=1`을 추가한다.
+
+
+: except일때 오류발생코드를 작성, (KeyError,Choice.DoseNotExist)는 `models.py`에서 만들어놓은 `Choice.DoseNotExist` 오류를 발생
+
+* `messages` framework
+
+```
+from django.contrib import messages
+messages.add_message(request, messages.INFO, 'Hello world.')
+```
+
+: `request,messages.ERROR,'너는 선택하지 않았다.'`
+
+```
+(2) from django.shortcuts import get_object_or_404, render
 from django.http import HttpResponseRedirect, HttpResponse
 from django.urls import reverse
 
@@ -668,10 +730,24 @@ def vote(request, question_id):
 
 `return HttpResponseRedirect(reverse('polls:results', args=(question.id,)))` : reverse함수는 `/polls/3/results/`와 같은 경로로 보내준다.
 
+: reverse() 함수는 url의 이름을 되돌려준다. redirect는 정규표현식에 해당하는 urls.py에 해당하는 url경로만을 쓸 수 있다.
+
 `polls/views.py`
 
 ```
-from django.shortcuts import get_object_or_404, render
+(1)def results(request, question_id):
+    response = '너는 질문을 보고 있다. %s.'
+    return HttpResponse(response % question_id)
+    question = get_object_or_404(Question, pk=question_id)
+    context = {
+        'question' : question,
+    }
+    return render(request, 'polls/result.html', context)
+```
+: result메서드 설명!!!!!!!!!!!
+
+```
+(2) from django.shortcuts import get_object_or_404, render
 
 
 def results(request, question_id):
@@ -874,7 +950,6 @@ class QuestionAdmin(admin.ModelAdmin):
     list_display = ('question_text', 'pub_date', 'was_published_recently')
 ```
 
-: 오류발생 ??????
 
 ![](/Users/mac/projects/images/스크린샷 2017-06-01 오후 9.52.49.png)
 
@@ -893,9 +968,11 @@ class Question(models.Model):
     was_published_recently.short_description = 'Published recently?'
 ```
 
-`return now - datetime.timedelta(days=1) <= self.pub_date <= now` : 현재시각으로부터 24시간 이내의 게시된 날짜표현??
+: 들여쓰기 오류 조심
 
-`was_published_recently.boolean = True` : false와  true 두가지 값으로 이루어진 데이터타입으로 등괄호가 참인것을 의미 ????
+`return now - datetime.timedelta(days=1) <= self.pub_date <= now` : 현재시각으로부터 24시간 이내의 게시된 날짜표현
+
+`was_published_recently.boolean = True`
 
 ```
 0 AND 0 = 0
@@ -922,9 +999,9 @@ TEMPLATES = [
 : `templates`의 경로를 설정
 
 
-* 경로보기 : `python -c "import django; print(django.__path__)"`를 찾아서 `py 경로`를 실행하여,`django/contrib/admin/templates`경로에 있는 `base_site.html`을 찾아서 복사한후
+* 경로보기 : `python -c "import django; print(django.__path__)"`를 찾아서 `py 경로`를 실행하여,`django/contrib/admin/templates`경로에 있는 `base_site.html`파일 자체를 복사해서 templates폴더안에 admin디렉토리를 만들고, `base_site.html`넣는다.
 
-* templates폴더안에 admin디렉토리를 만들고, admin/base_site.html만들고 덮어쓴다.
+: 이미 `python`파일 안에 `base.html`이 있고 `base_site.html`은 `base.html`을 참조해서 `admin`페이지의 기본설정을 다 해놨기에 , 가져다가 제목이나 내용을 바꿀 수 있다.
 
 `templates/admin/base_site.html`
 
