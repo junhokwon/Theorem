@@ -45,27 +45,45 @@ CREATE TABLE myapp_person (
 );
 ```
 
+: override(재정의), `primary key`를 따로 지정하면 `id`라는 필드가 생기지 않는다.
+
 ![](/Users/mac/projects/images/스크린샷 2017-06-04 오후 12.52.19.png)
 
 : 테이블의 네임은 `myapp_person`, `id`필드는 자동적으로 생성, 
 
+```
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+    }
+}
+```
+
+: `sqlite3`라고 지정해놨다.
+
 ## using models
 
-: 모델을 정의했다면, 장고에게 이 모델을 사용할 것이라고 알려줘야할 필요가 있다. `settings.py`에 있는 `INSTALLED_APPS`세팅에 만든 모듈의 이름을 더해줘야 한다. `myapp.models`이 `모듈명.models(클래스모임)`
+: 모델을 정의했다면, 장고에게 이 모델을 사용할 것이라고 알려줘야할 필요가 있다. `settings.py`에 있는 `INSTALLED_APPS`세팅에 만든 모듈의 이름을 더해줘야 한다. 
+
+`python manage.py startapp '모듈명'`
+
 
 ```
 INSTALLED_APPS = [
     #...
     'myapp',
+    '모듈명',
     #...
 ]
 ```
+: `INSTALLED_APPS`에다 `모듈명`을 추가해줘야한다.
 
 새로운 모듈명을 추가할때 마다, `./manage.py makemigrations`으로 변경사항을 저장한후, `./manage.py migrate`로 실제 데이터베이스에 모델을 반영
 
 ## Fields
 
-: 모델에서 가장 중요한 부분으로, 데이터베이스 필드의 목록을 만드는것이다. 필드들은 클래스 속성에 따라 구체화되며, 이름을 잘지어야 한다.
+: 모델에서 가장 중요한 부분으로, 데이터베이스 필드의 목록을 만드는것이다. **필드들은 클래스 속성**에 따라 구체화되며, `clean`,`save`,`delete`는 모델 api하고 충돌하므로, 이름을 잘지어야 한다.
 
 ```
 from django.db import models
@@ -82,15 +100,21 @@ class Album(models.Model):
     num_stars = models.IntegerField()
 ```
 
+: `artist = models.ForeignKey(Musician,on_delete=modles.CASCADE)`에서 `Album`클래스에서 외래키를 사용하여 `Musician`과 `one to many`연계를 해주었다. 그래서 `모듈명_Album`테이블에서 `artist_id`가 생긴것을 볼 수 있다.
+
 ![](/Users/mac/projects/images/스크린샷 2017-06-04 오후 1.03.53.png)
 
 : 모델의 각각의 필드는 적절한 필드 클래스의 `인스턴스명`을 가지며, `column type`은 저장하는 데이터베이스종류를 말한다. (`INTERGER`,`VARCHAR`,`TEXT`)
 
-: `form field`를 렌더링 하는것은 (`input type = text`,`select`)
+: `HTML WIDGET`에서 `models.py`에서 `forms.py`가 없어도, `textfield``charfield`를 사용하여 `form`요소를 만들 수 있다. `form field`를 렌더링 하는것은 (`input type = text`,`select`)
+
+# Writing custom model fields
+
+: 전화번호,주소 목록을 만들어서 온라인과 연동하여 실제로 이주소와 일치하는지 유효성검사 필드를 만들 수 있다.
 
 ## Field options
 
-: 필드명을 구성하는데 공통된 인자(arguments)가 있다.
+: 필드명을 구성하는데 공통된 인자(arguments)가 있다. 선택사항이다.
 
 ```
 CREATE TABLE myapp_person (
@@ -103,15 +127,15 @@ CREATE TABLE myapp_person (
 
 * null
 
-: if True, 장고는 텅빈값을 `NULL`로써 데이터베이스에 저장한다. Default는 `False`이다.
+: if True, 장고는 텅빈값을 `NULL`로써 데이터베이스에 저장한다. `NULL=True`로 선언
 
 * blank
 
-: `null`과 다른점은, 텅빈값을 데이터베이스에 저장하는것이 아닌, 폼 유효성에 관련되어 있다. 폼 유효성요손는 텅빈값을 허락한다??
+: `null`과 다른점은 `blank`는 빈 문자열을 의미하며, `NULL`은 아예 없다는것을 의미. `datetime field`는 빈값을 넣을 수가 없다. 문자열이 아니기때문이다.`blank=True` 로 선언하여, 빈 값으로 줄 수 있다.
 
-* choice
+* choices
 
-: 순환할수 있는 객체(튜플의 리스트) 필드명에서 사용할때는 두개씩 괄호로 묶어서 선택지를 만든다. `textfield`대신 `select box`를 사용하여 렌더링한다.
+: 순환할수 있는 객체(튜플의 리스트) 필드명에서 사용할때는 두개씩 괄호로 묶어서 선택지를 만든다. `textfield`대신 `charfield`를 준다면, `select box`를 사용하여 렌더링한다.
 
 ```
 YEAR_IN_SCHOOL_CHOICES = (
@@ -139,6 +163,8 @@ class Person(models.Model):
     
 ```
 
+![](/Users/mac/projects/images/스크린샷 2017-06-05 오전 11.26.20.png)
+
 : `SHIRT_SIZES`라는 인스턴스에 튜플로 선택지를 만들고, `shirt_size`라는 인스턴스에 `choices=SHIRT_SIZES`를 넣는다.
 주의할점은 `choices`
 
@@ -156,18 +182,18 @@ class Person(models.Model):
 
 * default
 
-: 필드에서의 객체나 value(값)이다.??
+: 필드에서의 객체의value(값)이다.
 
 * help_text
 
-: 너의 필드에서 폼요소가 사용되지 않을지라도, 유용하다. 폼 widget에서 보여질수 있다. ??
+: 너의 필드에서 폼 요소가 사용되지 않을지라도, 유용하다. 폼 widget에서 보여질수 있다. 
 
-* primary_key
+* primary_key(read-only)
 
-: 필드는 각모델에 대한 primary key이며, 장고에서는 자동적으로 `primary_key=True`를 생성해준다. 만약 `primary_key`의 값을 바꾸고 싶다면, 새로운 객체는 예전의 값을 놔두고 새롭게 만든다. 예를들어)
+: 필드는 각 모델에 대한 primary key이며, 장고에서는 자동적으로 `primary_key=True`를 생성해준다. 만약 `primary_key`의 값을 바꾸고 싶다면, 새로운 객체는 예전의 값을 놔두고 새롭게 만든다. 예를들어)
 
 ```
-from djngo.db import models
+from django.db import models
 class Fruit(models.Model):
 	name = models.CharField(max_length=100, primary_key = True)
 ```
@@ -179,13 +205,14 @@ fruit.save()
 >>> ['Apple','pear']**
 ```
 
+
 * unique
 
 : 필드 속성에 대한 공통적인 짧은 설명이다. 
 
 ## automatic primary key fields
 
-: 장고는 기본적으로 필드에 해당하는 각각의 모델에 `id = models.AutoField(primary_key=True)`를 부여한다. 각각의 모델은 명백히 선언되었거나, 자동적으로 부여된 `primary_key =True`를 가진 하나의 필드만을 요구한다.
+: 장고는 기본적으로 필드에 해당하는 각각의 모델에 `id = models.AutoField(primary_key=True)`를 부여한다. 하나씩 추가할때마다 값이 하나씩 증가, 각각의 모델은 명백히 선언되었거나, 자동적으로 부여된 `primary_key =True`를 가진 하나의 필드만을 요구한다.
 
 : 만약 `primary key`를 커스텀하고 싶다면, 너의 필드중 하나에서 `primary_key=True`를 구체화 하면 된다. `name = models.CharField(max_length=100, primary_key = True)`와 같은 예
 
@@ -208,7 +235,7 @@ place = models.OneToOneField(place,on_delete=models.CASCADE,verbose_name="relate
 
 : `verbose name`에서 첫번째 문자가 대문자가 올 필요는 없다. 장고는 자동적으로 `verbose name`을 대문자화 해준다.
 
-## Relattionships
+## Relationships
 
 : 데이터베이스 관계요소를 설정하고 싶을떄, 새개의 공통된 속성을 제공한다.
 
@@ -216,9 +243,98 @@ place = models.OneToOneField(place,on_delete=models.CASCADE,verbose_name="relate
 
 : `Many-to-one-relationships`을 사용한다면, `django.db.models.ForeignKey.`을 사용해야 한다. 
 
-* ForeignKey
+```
+from django.db import models
 
-: 연계하고자 하는 모델클래스를 위치인자로 받는다.
+class Reporter(models.Model):
+	first_name = models.CharField(max_length=30)
+	last_name = models.CharField(max_length=30)
+	email = models.EmailField(blank=True)
+	
+	def __str__(self):
+	 	return '{} {}'.format(
+	 	self.first_name,
+	 	self.last_name,
+	 	)
+	 
+class Article(models.Model):
+	headline = models.CharField(max_length=30)
+	pub_date = models.DateField()
+	reporter = models.ForeignKey(Reporter,on_delete=models.CASCADE)
+	
+	def __str__(self):
+		return self.headline
+	class Meta:
+		ordering = ('headline',)
+```
+
+
+```
+In [1]: r = Reporter(first_name='junho', last_name='kwon')
+
+In [2]: r.save()
+
+In [3]: r2 = Reporter(first_name='wonho',last_name='kwon')
+
+In [4]: r2.save()
+
+```
+
+: `r`과 `r2`에 `Reporter`클래스를 이용하여, 리포터들을 만든다.
+
+```
+In [6]: a = Article(id=None, headline="This is a test",pub_date=date(2005,3,3), 
+   ...: reporter = r)
+   
+In [8]: a.reporter.id
+Out[8]: 2
+
+In [9]: Reporter.objects.all()
+Out[9]: <QuerySet [<Reporter: john smith>, <Reporter: junho kwon>, <Reporter: wonho kwon>]>
+
+In [10]: a.reporter
+Out[10]: <Reporter: junho kwon>
+```
+
+: 항상 `save()`로 저장해야한다. `Article`클래스에서 필요한 위치인자는 `headline`,`pub_date`,`reporter` 3개이다. `reporter` 는 `Foreign`키로 `Many`인 `Reporter`이다.
+
+```
+In [11]: r
+Out[11]: <Reporter: junho kwon>
+
+In [12]: new_article = r.article_set.create(headline='good', pub_date=date(2017,
+    ...: 3,3))
+
+In [13]: new_article
+Out[13]: <Article: good>
+
+```
+
+: 리포트이름을 저장한 `r`인스턴스를 활용하고, 역참조 `article_set`매니저명을 활용하여 `new_article`라는 인스턴스에 새로운 기사를 만들었다. `a = Article(id=None, headline="This is a test",pub_date=date(2005,3,3), 
+   ...: reporter = r)`와 같은 의미이다.
+   
+```
+>>> new_article2 = Article(headline="Paul's story", pub_date=date(2006, 1, 17))
+>>> r.article_set.add(new_article2)
+>>> new_article2.reporter
+```
+
+: `new_article2`라는 인스턴스를 만들고 add(새로운기사)를 통해 추가할 수 있다.
+
+`Article.objects.filter(reporter__in=[1,2]).distinct()` : ??
+
+`Article.objects.filter(reporter__in=[r,r2]).distinct()` : ??
+
+`Reporter.objects.order_by('first_name')` : `first_name`순으로 정렬
+
+`Reporter.objects.filter(article__reporter__first_name__startswith='John').distinct()` : 기사를 쓴 리포트이름이 john으로 시작하는 리포터를 찾아라.
+	
+	
+
+
+* **ForeignKey**
+
+: 연계하고자 하는 모델클래스를 위치인자로 받는다. `ForeiginKey`를 쓰는 클래스는 하위모델에 쓴다. 하위모델이 `1`, 소스모델이 `Many`다.
 
 ```
 from django.db import models
@@ -229,26 +345,216 @@ class Car(models.Model):
 	manufacturer = models.Foreignkey(Manufacturer,on_delete=models.CASCADE)
 ```
 
-* Many-to-Many relationships
+: `Recursive relationship` : 자기자신의 클래스를 다시 가지는것 : `models.ForeignKey('self',on_delete=models.CASCADE)`
 
-: 다대다 관계를 설정하기 위해서는 `ManyToManyField`를 사용하여 위치인자를 주어야 한다.
+```
+class Person(models.Model):
+
+ PERSON_TYPES =(
+        ('student','학생'),
+        ('teacher','선생'),
+    )
+
+    person_type = models.CharField(
+        '유형',
+        max_length=10,
+        choices=PERSON_TYPES,
+        default=PERSON_TYPES[0][0]
+    )
+    teacher = models.ForeignKey(
+        'self',
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,)
+```
+
+![](/Users/mac/projects/images/스크린샷 2017-06-05 오후 12.38.00.png)
+
+![](/Users/mac/projects/images/스크린샷 2017-06-05 오후 12.38.41.png)
+
+: `null=True`,`blank=True`을 사용하면 `null`값으로 보인다.
+
+## Following relationshop backward(역참조)
+
+![](/Users/mac/projects/images/스크린샷 2017-06-05 오후 12.45.59.png)
+
+![](/Users/mac/projects/images/스크린샷 2017-06-05 오후 12.48.42.png)
+
+: `Foreignkey`를 가지는 모델이 있다면, `foreign-key model`의 인스턴스는 `Manager`로 접근이 가능하다. `하위모델명(소문자)_set`
+
+```
+class Car(models.Model):
+    name = models.CharField(max_length=40)
+    manufacturer = models.ForeignKey(Manufacturer,on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.name
+
+class Manufacturer(models.Model):
+    name = models.CharField(max_length=40)
+
+    def __str__(self):
+        return self.name
+
+```
+`m = Manufacturer(name="bmw")`
+`Car.objects.create(name="520d",manufacturer = m)` : 생성방법
+
+`Car.objects.filter(name__startswith='5')`이 아닌, `m=Manufacturer(name="bmw")`, `m.car_set.filter(name__startswith='5')`
+
+: `car_set`은 `foreign-key model`의 인스턴스는 `manufacturer`이며, 이 인스턴스는 `Manager`로 접근이 가능하기에 `Manager`명 `car_set`으로 접근한다.
+
+
+## Many-to-Many relationships
+
+: 다대다 관계를 설정하기 위해서는 `ManyToManyField`를 사용하여 위치인자를 주어야 한다. pizza클래스가 topping 클래스를 가지는것이 자연스럽다. 그래서 pizza폼에서 유저가 토핑을 선택하도록 한다.
 
 ```
 from django.db import models
-class topping(models.Model):
-	pass
+
+
+class Topping(models.Model):
+    name = models.CharField(max_length=30)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        ordering =('name',)
+
 class Pizza(models.Model):
-	toppings = models.ManyToManyField(Topping)
+    name = models.CharField(max_length=30)
+    toppings = models.ManyToManyField(Topping)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        ordering = ('name',)
+
 ```
 
-* Extra fields on many to many relationships
+![](/Users/mac/projects/images/스크린샷 2017-06-05 오후 3.14.12.png)
 
-: 두 모델사이의 관계를 설정하고 싶을때 필요하며, 예를들면, 뮤지컬 그룹에 뮤지션들이 포함될때, `ManyToManyField `를 사용하면 되나, 디테일을 추가하고 싶다면,
+![](/Users/mac/projects/images/스크린샷 2017-06-05 오후 3.15.26.png)
+
+![](/Users/mac/projects/images/스크린샷 2017-06-05 오후 3.20.08.png)
+`t_cheese.toppings.add(t_vegetable)`과 같이 `다대다관계`에서 `toppings`라는 인스턴스를 활용하여 접근할 수 있다.(1대다일경우는 `함수명_set.`으로 접근만 가능)
+
+`t_cheese.pizza_set.all()` : 치즈토핑이 있는 피자를 모두 가져와라 (역참조)
+
+![](/Users/mac/projects/images/스크린샷 2017-06-05 오후 3.23.21.png)
+
+: `Pizza`와 `Topping` 필드가 아닌 새로 `Pizza_and_Topping` 테이블이 새로 생긴다.
+
+![](/Users/mac/projects/images/스크린샷 2017-06-05 오후 3.26.50.png)
+
+`p_supersupreme.toppings.create(name='야채')` : 아예 `Many manage`를 사용하여 야채를추가하고 저장한다. `toppings`는 인스턴스로 `1대다`의 관계에서는 인스턴스로 접근 할수 없다. 
+
+![](/Users/mac/projects/images/스크린샷 2017-06-05 오후 3.29.37.png)
+
+: 상태보기(`print(q.query)`)
+
+![](/Users/mac/projects/images/스크린샷 2017-06-05 오후 3.32.20.png)
+
+: `topping_id`가 1이거나 2(`lte=2`)인 피자를 가져와라
+
+![]( /Users/mac/projects/images/스크린샷 2017-06-05 오후 3.35.37.png)
+
+`Topping.objects.filter(pizza__name__startswith="치즈")` 와 `p_cheese.toppings.all()`은 같다.
+
+`t_cheese.pizza_set.create(name="야채") >>> <Pizza: 야채 (치즈)>`
+
+`p_vegetable.toppings.create(t_cheese)` 과 같은 의미이다.
+
+
+* 피자명 옆에 토핑명을 같이 쓰고 싶을때,
 
 ```
 from django.db import models
 
-class Persion(models.Model):
+class Topping(models.Model):
+	name=models.CharField(max_length=30)
+	def __str__(self):
+		return self.name
+	class Meta:
+		ordering('name',)
+		
+class Pizza(models.Model):
+	name = models.CharField(max_length=30)
+	toppings = models.ManyToManyField(Topping)
+	
+	def __str__(self):
+		toppings_string = ""
+		for topping in self.toppings.all():
+		toppings_string += topping.name
+		topping_strign +=','
+		
+		topping_string = toppings_string[:-2]
+		return '{} ({})'.format(self.name,toppings_string)
+		
+return '{} ({})'.format(self.name,','.join[(t.name for t in self.toppings.all())])
+```
+ 
+ 
+
+
+
+# Extra fields on many to many relationships(중간모델)
+
+: 두 모델사이의 관계를 설정하고 싶을때 필요하며, 예를 들어) 이 피자에 이 토핑이 언제부터 만들어졌나?라는 디테일 요구할때,구단에서 축구선수가 이적하거나 들어올때의 디테일을 요구할경우, `intermediate model`에서 `extra fields`를 추가해야한다. `intermediate` 모델은 `ManyToManyField`와 연관되어 있으며 `through`를 사용하여 중계자역할을 하게끔한다. 중간자 모델은 `Foreginkey`는 하나만 쓸 수 있다. `중간모델(intermediate model)`을 설정하는 이유는 두 모델간의 공통점을 표현하기 위한것이다.
+
+```
+from django.db import models
+
+class Player(models.Model):
+    name = models.CharField(max_length=30)
+
+    def __str__(self):
+        return self.name
+
+class Club(models.Model):
+    name = models.CharField(max_length=40)
+    players = models.ManyToManyField(
+        Player,
+        through='TradeInfo',
+    )
+
+    def __str__(self):
+        return self.name
+
+class TradeInfo(models.Model):
+    player = models.ForeignKey(Player,on_delete=models.CASCADE)
+    club = models.ForeignKey(Club,on_delete=models.CASCADE)
+    date_joined = models.DateField()
+    date_leave = models.DateField(null=True,blank=True)
+
+```
+
+`players = models.ManyToManyField(player,through ='TradeInfo',)`은 
+
+**`Player`,`Club`과 `TradeInfo`를 연결해주는 선언이다. `Club`과 `Player`을 `ManyToManyField`로 연결해주고, `through`를 통해 중간자 모델을 `TradeInfo`로 연결해준다. **
+
+
+: 중간자모델 : `TradeInfo`
+
+: 소스모델 : `Club`
+
+: 대상모델 : `players`
+
+: `TradeInfo`가 중간모델이고, 	`Club`과 `Person`의 공통요소로 쓸것은 `date_joined`와 `date_leave`다.
+
+
+![](/Users/mac/projects/images/스크린샷 2017-06-05 오후 4.38.57.png)
+
+![](/Users/mac/projects/images/스크린샷 2017-06-05 오후 4.39.19.png)
+
+
+
+```
+from django.db import models
+
+class Person(models.Model):
 	name = models.CharField(max_length=128)
 	
 	def __str__(self):
@@ -256,7 +562,7 @@ class Persion(models.Model):
 		
 class Group(models.Model):
 	name = models.CharField(max_length=128)
-	members = models.ManyToManyField(person,through='Membership')
+	members = models.ManyToManyField(Person,through='Membership')
 	
 	def __str__(self):
 	return self.name
@@ -268,7 +574,7 @@ class Membership(models.Model):
 	invite_reason =  models.CharField(max_length=64)
 ```
 
-: `intermediate model`은 `Membershop`이고, `source model`은 `Group`이다. 여기서 `members = models.ManyToManyField(Person,through='Membership')`를 사용하여 구체화해줘야 한다. `members`라는 인스턴스에 `Person`클래스를 할당하고, `through=Membership`중간모델을 만들어서 `Group`클래스의 하위요소가 `Membershop` 클래스라고 구체화해준다. 설정해주지 않는다면 `Person`클래스 하위요소가 `Membership`이라고 장고에서 착각할수 있기 때문이다.  또한 `ForeiginKey`의 위치인자를 같은 모델명(클래스명)에 주는것도 가능하다. 하지만 두가지관계는 연관이 없다면, `source model`에서 `through`를 사용하여 관계를 구체화해줘야 한다.
+: `intermediate model`은 `Membershop`이고, `source model`은 `Group`이다. 여기서 `members = models.ManyToManyField(Person,through='Membership')`를 사용하여 소스모델인 `Group`과 `Person`클래스를 `ManyToManyField`로 설정해줘야 한다. 설정해주지 않는다면 `Person`클래스 하위요소가 `Membership`이라고 장고에서 착각할수 있기 때문이다.  또한 `ForeiginKey`의 위치인자를 같은 모델명(클래스명)에 주는것도 가능하다. 하지만 두가지관계는 연관이 없다면, `source model`에서 `through`를 사용하여 관계를 구체화해줘야 한다.
 
 ```
 ringo = Person.objects.create(name='ringo')
@@ -281,8 +587,10 @@ m1.save()
 
 beatles.members.all()
 >> <QuerySet [<Person: Ringo Starr>]>
+# members라는 인스턴스로 실행(MTOM)
 ringo.group_set.all()
 >> <QuerySet [<Group: The Beatles>]>
+# ringo라는 Person클래스를 담은 인스턴스.group_set(역참조)
 
 m2 = Membership.objects.create(person=paul,group=beatles,date_joined=date(1960,8,1),invite_reason="wanted to form a band.")
 
@@ -312,17 +620,36 @@ Person.objects.filter(
 	membership__date__joined__gt=date(1961,1,1))
 ```
 
+: `Person`인스턴스에서 시간대를 불러올려면 `Person.objects.filter(membership__date_joined__gt=date(year,?,?)` 즉 `membership__`이 중요하다.
+
 ```
 (1) ringos_membership = Membership.objects.get(group=beatles,person=ringo)
 
 (2) ringos_membership = ringo.membership_set.get(group=beatles)
 
+```
 
+: (2)번은 membership_set(역참조)를 사용 `person`이나 `group`인스턴스를 그대로 사용하지 못하고 `ForeignKey` 를 사용하여 `1대 Many`를 사용했기에, `membership_set`을 사용해야 한다.
+
+```
 ringos_membership.date_joined
 >>> datetime.date(1962,8,16)
+
 ringos_membership.invite_reason
 >>> 'needed a new drummer
 ```
+
+```
+>>> ringos_membership = Membership.objects.get(group=beatles, person=ringo)
+>>> ringos_membership.date_joined
+datetime.date(1962, 8, 16)
+>>> ringos_membership.invite_reason
+'Needed a new drummer.'
+
+```
+
+: `인스턴스.date_joined`에서 인스턴스는 `Membership.objects.get(group=beatles,person=ringo)`
+
 
 ## one to one relationships
 
@@ -688,7 +1015,11 @@ class BookReview(Book,Article):
 
 : `manage.py startapp` 명령은 어플리케이션 구조를 만들고, `models.py`파일을 포함시킨다. 많은 `모델`을 가지고 싶다면, 각각의 파일을 조직화하는것은 매우 유용하다. `models package`를 만드는것은 `models.py`를 제거하고, `myapp/models/` 디렉토리에 `__init__.py`를 포함시키고 저장한다. 무조건 `__init__.py` 파일을 `import`해야 한다.
 
-		
+![](/Users/mac/projects/images/스크린샷 2017-06-05 오후 12.56.17.png)
+
+![](/Users/mac/projects/images/스크린샷 2017-06-05 오후 12.57.16.png)
+
+: `__init__.py`에다 자기가 쓸 클래스명을 `import`
 
 
 
