@@ -507,6 +507,8 @@ limit_choices_to = limit_pub_date_choices
 
 (3) `ForeignKey.related_name`
 
+: `related_name`을 설정하는 이유는 중간자모델에서 똑같은 소스모델을 많은 외래자로 참조함고, `through_fields =('field1','field2)`에서 설정한 필드를 를 제외한 속성을 역참조하고 싶으면, `related_name`을 재설정해줘야 한다.
+
 ```
 
 user = models.ForeignKey(
@@ -516,7 +518,7 @@ user = models.ForeignKey(
 	)
 ```
 	
-: `related_name='+'`을 쓰면, 부모모델인 `User` 모델은 외래자를 설정한 모델과 `backend relation`(역참조)를 가지지 않을것이다. ??
+: `related_name='+'`을 쓰면, 부모모델인 `User` 모델은 외래자를 설정한 모델과 `backend relation`(역참조)를 할필요가 없을경우
 
 (4) `ForeignKey.related_query_name`
 
@@ -614,6 +616,172 @@ class Membership(models.Model):
 (7) `db_constraint` : `True`가 기본값, 컨트롤러에 관한것 ??
 
 (8) `swappable` : `ManyToManyField`가 `swappable model`를 참조한다면 `True`라면, `settings.AUTH_USER_MODEL`의 현재의 값을 매치하여 참조한다.
+
+# OneToOneField
+
+`class OneToOneField(othermodel, on_delete, parent_link=False, **options)`
+
+: `unique=True`이 포함된`ForeignKey`는 `OneToOneField`와 같다. 또다른 모델로 확장하는것이 매우 유용한 방식이다. `Multi-table-상속`도 부모모델과 자식모델의 내포된 1대1 관계를 가지고 있다. 1대1관계에서, `relate_name`을 설정해주지 않을경우, 장고는 `현재의 모델의 소문자를 역참조` 명으로 사용한다.
+
+```
+from django.db import settings
+from django.db import models
+
+class MySpecialUser(models.Model):
+	user = models.OneToOneField(
+		settings.AUTH_USER_MODEL,
+		on_delete = models.CASCADE,
+		)
+		
+	supervisor = models.OneToOneField(
+	settings.AUTH_USER_MODEL,
+	on_delete=models.CASCADE,
+	related_name='supervisor_of',
+	
+)
+
+```
+
+```
+>>> user.supervisor_of
+Traceback (most recent call last):
+    ...
+DoesNotExist: User matching query does not exist.
+```
+
+: user.역참조명을 실행했는데도 쿼리셋이 존재하지 않는다고 하는 이유는 `user`인스턴스는 단순히 `User`와 일대일 관계일뿐,`supervisor`과의 관계는 설정되있지 않기 때문이다. `parent_link=True`를 쓴다면 ??
+
+# Field API reference
+
+`class Field`
+
+: 필드는 추상적인 클래스고 데이터베이스 테이블의 컬럼을 나타낸다. 필드는 모델(클래스)에서 클래스 속성(인스턴스)으로 만들어지고, 특별한 테이블의 컬럼을 나타낸다. `meta class`에서 쓰이는 필드 옵션(`null`,`unique`)나 메서드를 가지고 있다.
+
+: 필드는 `QuerySet`에서 `Transform`이나 `Lookup`이 등록될수 있다.??
+
+* description
+
+: 필드의 `verbose description`이며,
+`description = _("strung (up to %(max_length)s")
+
+* get_internal_type
+
+: 클래스 name을 리턴해준다.
+
+* db_type(connection)
+
+: 어떤필드의 데이터베이스의 컬럼데이터의 타입을 반환한다.
+
+* rel_db_type
+
+: `외래자`와 `1대1관계`가 참조하고 있는 어떤필드의 데이터베이스 컬럼을 반환한다.
+
+* 장고가 데이터베이스 백엔드와 필드를 관계시킬 필요가 있을 세가지 경우
+
+(1) 파이썬 값에서 데이터베이스 백엔드 값으로변환(데이터베이스에서 쿼리셋한다.)
+
+(2) 데이터베이스에서 데이터를 읽을때(load) , 데이터베이스값에서 파이썬 값으로 변환
+
+(3) 데이터베이스에 저장할때, 파이썬 값에서 데이터베이스 백엔드 값으로
+
+-> 데이터베이스에서 쿼리할때, `get_db_prep-``value(),get_prep_value()`가 사용된다. ??
+
+* get_prep_value(value)
+
+: `value`는 모델속성의 현재의 값이다. 쿼리에서 인자로 사용될 준비가 된 포맷의 데이터를 메서드는 반환해야 한다.??
+
+* get_db_prep_value(value,connection,prepared=False)
+
+: `value`를 백엔드 `value`로 바꾼다. 기본적으로 `prepared=True`거나 `get_prep_value()`라면 기본값이 리턴된다.
+
+```
+def get_db_prep_value(self, value, connection, prepared=False):
+    value = super(BinaryField, self).get_db_prep_value(value, connection, prepared)
+    if value is not None:
+        return connection.Database.Binary(value)
+    return value
+    
+```
+
+: ??
+
+* from_db_value(value,expression,connection,context)
+
+: 파이선객체에서 데이터베이스에 의해 반환된 값을 변환한다. `get_prep_value()`의 반대작용을 한다. 
+
+* `pre_save()`,`get_db_prep_save()`는 저장할때 사용한다.
+
+* get_db_prep_save(value,connection)
+
+: `get_db_prep_value()`와 같은 의미이나, 필드값이 데이터베이스에 저장되어야만 한다. 기본적으로 `get_db_prep_value()`을 리턴한다.
+
+* pre_save(model_instance,add)
+
+: `get_db_prep_save()`이전의것을 불러서 저장한다. `model_instance`는 필드가 속한 인스턴스이며, `add`는 인스턴스가 처음으로 데이터베이스에 저장될때  더한다.??
+
+: 모델인스턴스로 부터 적절한 속성의 값을 반환해야한다. 그속성의 이름은 `self.attname`이다.
+
+* to_python(value)
+
+: 올바른 파이썬 객체로 값을 바꾼다. `value_to_string()`과 반대의 작용을 한다. 또한 `clean()`을 호출한다. 데이터베이스에 저장하는것외에도 필드는 값을 계속 연속으로 반환하는 방법을 알필요가 있다. ??
+
+* value_to_string(obj)
+
+: `obj`를  `string`으로 바꾼다. `See Converting field data for serialization for usage.을 참조`
+
+: `model forms`을 사용할때, 필드는 어느 폼필드가 표현되는지 알필요가 있다.
+
+`formfield(form_class=None,choices_form_class=None,**kwargs)`
+
+: `ModelForm`의 필드의 `django.forms.Field`를 반환한다. ??
+
+: 기본적으로, `form_class`와 `choices_form_class`은 `None`이다. 만약 `choices`와 `choices_form_class`를 구체화하지 않았다면, `TypedChoiceField`를 사용한다.??
+
+* deconstruct()
+
+: 필드를 다시만들 충분한 정보의 4개의 튜플을 반환한다. 모델의 필드명, 위치인자의 목록, 키워드 인자의 딕셔너리 반환등
+
+# Field attibulte reference
+
+: 모든 `Field`인스턴스는 몇가지의 속성을 포함한다. `Model_meta API`로 함께 이러한 속성을 사용해라.??
+
+## 필드의 속성
+
+* Field.auto_created
+
+: 필드가 자동적으로 만들어지는것, 모델 상속에 의해 사용되는 `onetoonefield`와 같다.??
+
+* Field.concrete
+
+: 어떤것과 관련되어 있는 데이터베이스 컬럼을 가지는 필드를 가르킨다.??
+
+* Field.hidden
+
+: ??
+
+: `Option.get_fields()`는 기본적으로 `hidden fields`를 배제한다. `include_hidden =True`는 결과값에서 `hidden fields`를 리턴한다.
+
+* Field.is_relation
+
+: 하나 혹은 더많은 모델을 참조한 필드를 가르킨다.
+
+* Field.model
+
+: 필드가 정의될때, 모델을 반환한다. 
+
+## Attributes for fields with relations(관계설정에서 사용되는 필드속성)
+
+* Field.many_to_many
+
+: `many_to_many=True`이면 필드는 다대다관계를 가진다. 
+
+* Field.many_to_one
+
+* Field.one_to_many
+
+* Field.one_to_one
+
+* Field.related_model : 필드가 관련되있는 모델을 가르킨다.
 
 
 
