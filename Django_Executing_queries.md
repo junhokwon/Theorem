@@ -94,11 +94,11 @@ Entry.objects.filter(
 `Blog.objects.get(id__exact=14)
 Blog.objects.get(id=14)` 
 
-: 두개구문은 같은의미이다.
+: `id__exact`  두개구문은 같은의미이다.
 
 `Blog.objects.get(name__iexact="beatles blog")`
 
-: 대소문자 구분없이 다 가져온다.
+: `name_iexact` 대소문자 구분없이 다 가져온다.
 
 `Entry.objects.get(headline__contains='Lennon')`
 
@@ -106,13 +106,13 @@ Blog.objects.get(id=14)`
 
 `Entry.objects.filter(blog__name='Beatles Blog')`
 
-: `blog`을 타고 가서 `name`속성까지 들어간다.
+: **`blog`을 클래스를 들어가서 `name`속성을 사용한다.**
 
 `Blog.objects.filter(entry__headline__contains='Lennon')`
 
 `Blog.objects.filter(entry__authors__name="Lennon")`
 
-: `related_query_name = entry`로 사용하는경우, `Blog`모델에서 필터링하려면, `(entry__headline__contains=?)`라고 `entry`를 넣어야한다. `역 쿼리네임`으로 참조하는것이다. 
+: `related_query_name = entry`로 사용하는경우, **`Blog`모델에서 필터링하려면**, `(entry__headline__contains=?)`라고 참조하고자 하는 속성의 클래스명`entry`를 넣어야한다. `역 쿼리네임`으로 참조하는것이다. 
 
 `Blog.objects.fitler(entry__headline__contains='Lennon',entry__pub_date__year=2008)`
 
@@ -120,7 +120,7 @@ Blog.objects.get(id=14)`
 
 `Blog.objects.filter(entry__headline__contains='Lennon').filter(entry__pub_date__year=2008)`
 
-: 필터링을 2번 하는것이다. `as well as` ~뿐만 아니라.
+: 필터링을 2번 하는것이다. `as well as` ~뿐만 아니라의 의미
 
 
 
@@ -131,7 +131,7 @@ Blog.objects.get(id=14)`
 	),
 )`
 
-: `filter`and 연산을 하고 `exclude`연산을 해야한다. 블로그중에서 and연산으로 속하는 entry(`entry__in`)을 제외하고 검색하는것.
+: `filter`and 연산을 하고 `exclude`연산을 해야한다. 블로그 중에서 and연산으로 속하는 entry(`entry__in`)을 제외하고 검색하는것.
 
 `Blog.objects.filter(entry__authors__name__isnull=True)`
 
@@ -141,14 +141,13 @@ Blog.objects.get(id=14)`
 
 ## Filters can reference fields on the model
 
-: `F expreesions`은 **같은모델에서 두가지의 다른필드 값을 비교**해준다. 같은 모델에서 필드안의 값을 참조하고 싶을때 사용한다.
+: `F expreesions`은 **같은모델에서 두가지의 다른필드(속성) 값을 비교**해준다. 같은 모델에서 필드안의 값을 참조하고 싶을때 사용한다.
 
-`el = Entry.objects.First()
 
 `from django.db.models import F`
 `Entry.objects.filter(n_comments__gt=F('n_pingbacks'))`
 
-: `n_comments` > `n_pingbacks`
+: `n_comments` 가`n_pingbacks`보다 많을때
 
 
 또한 `F()`을 사용하면, 다양한 연산이 가능하다.
@@ -164,7 +163,7 @@ Blog.objects.get(id=14)`
 `from datetime import timedelta
 Entry.objects.filter(mod_date__gt=F('pub_date') + timedelta(days=3))`
 
-: 수령한 날짜가 출판한날짜 + 3일 인 값만 Entry
+: 수정한 날짜가 게시한날짜 3일 이후의 entry만 가져오기.
 
 `F('somefield').bitand(16)`
 
@@ -176,11 +175,14 @@ Entry.objects.filter(mod_date__gt=F('pub_date') + timedelta(days=3))`
 
 ## Caching and QuerySet
 
+: : 처음에 쿼리셋을 생성할경우, 캐쉬값은 비어있다. 데이터베이스 쿼리를 처음 실행할경우, 장고는 쿼리셋 캐쉬에다가 쿼리의 결과를 저장한다.
+
 ```
 >>> print([e.headline for e in Entry.objects.all()])
 >>> print([e.pub_date for e in Entry.objects.all()])
 ```
-처음에 쿼리셋은 비어있고, 쿼리셋이 처음 평가될때, 데이터베이스 쿼리가 발생하고 cach가 발생한다. 위의 리스트컴프리헨션에서는 cach가 발생하지 않는다.
+
+: 위의 예에서는 같은 데이터베이스 쿼리를 2번 실행한 결과를 의미한다.
 
 ```
 >>> queryset = Entry.objects.all()
@@ -188,16 +190,25 @@ Entry.objects.filter(mod_date__gt=F('pub_date') + timedelta(days=3))`
 >>> print(queryset[5]) # Uses cache
 >>> print(queryset[5]) # Uses cache
 ```
-: 슬라이스나 인덱스 연산은 캐시가 발생하지 않는다.
+: 쿼리셋이라는 인스턴스를 만들어 실행하면, 캐쉬를 재활용한다.
 
 ```
->>> [entry for entry in queryset]
->>> bool(queryset)
->>> entry in queryset
->>> list(queryset)
+>>> queryset = Entry.objects.all()
+>>> print(queryset[5]) # Queries the database
+>>> print(queryset[5]) # Queries the database again
 ```
 
-: 캐시가 발생한다.
+: 슬라이스연산이나 인덱스 연산은 캐쉬를 발생하지 않는다.
+
+```
+>>> queryset = Entry.objects.all()
+>>> [entry for entry in queryset] # Queries the database
+>>> print(queryset[5]) # Uses cache
+>>> print(queryset[5]) # Uses cache
+```
+
+: 하지만, 전체 쿼리셋이 이미 평가되었다면, 캐쉬가 남는다.
+
 
 ## Complex lookups with Q objects
 
@@ -223,7 +234,7 @@ Poll.objects.get(
 )
 ```
 
-: `Q` 객체에서 `,`은 `and`연산을 의미한다 `who` and ((2005,5,2) or (2005,5,6)), 항상 `Q`객체가 먼저 쓰여야한다.
+: `Q` 객체에서 `,`은 `and`연산을 의미한다 `who` and ((2005,5,2) or (2005,5,6)), **항상 `Q`객체가 먼저 쓰여야한다.**
 
 ## Comparing objects
 
@@ -283,7 +294,7 @@ entry.save()
 entry.authors.set(old_authors)
 ```
 
-: 다대다관계인경우는 새로운 테이블을 생성하기에, `entry.authors.all()`을 `old_authors`에 넣고, `pk`값을 없앤후, 저장하고 `entry.authors.set(old_authors)`을 넣으면 복사된다.
+: `Entry`와 `Author`와 같은 다대다관계인경우는 새로운 테이블을 생성하기에, entry를 복사하기 위해서는,`entry.authors.all()`을 `old_authors`에 넣고, `pk`값을 없앤후, 저장하고 `entry.authors.set(old_authors)`을 넣으면 복사된다.
 
 ```
 detail = EntryDetail.objects.all()[0]
@@ -292,15 +303,18 @@ detail.entry = entry
 detail.save()
 ```
 
+: 1대 1 관계일경우, `detail = EntryDetail.objects.all()[0]`과 같이 한개의 primary key에 하나씩 연결되어있기에, 세세히 구분해줘야한다.
+
 ## Updating multiple objects at once
 
-: 어떤쿼리셋을 만들고, 변경한다(`update`)
-
+: 모든객체의 특별한 값을 한번에 바꾸고 싶을때, `update()`를 사용한다.
 
 ```
 # Update all the headlines with pub_date in 2007.
 Entry.objects.filter(pub_date__year=2007).update(headline='Everything is the same')
 ```
+
+: 2007년도에 게시된 모든 헤드라인을 바꾸고 싶을때,
 
 ```
 >>> b = Blog.objects.get(pk=1)
@@ -323,10 +337,17 @@ for item in my_queryset:
     item.save()
 ```
 
+```
+Entry.objects.all().update(n_pingbacks=F('n_pingbacks') + 1)
+```
 
-# Related objects
+: `F expreesions`도 `update()`할때 사용이 가능하다.
 
-: `selected_related()`에서 가져오게되면 연결되어 있는 외래자의 모델의 모든 정보를 가져온다.
+# using a custom reverse manager
+
+: 역참조에서 사용되는 `RelatedManager`는 `default manager`의 서브클래스이다.
+
+: **`selected_related()`에서 가져오게되면 연결되어 있는 외래자의 모델의 모든 정보를 가져온다.**
 
 ```
 from django.db import models
@@ -340,7 +361,32 @@ b = Blog.objects.get(id=1)
 b.entry_set(manager='entries').all()
 ```
 
-: `entries`라고 매니저이름을 바꾸었으나, 역참조이름은 못바꾸기 때문에 `b.entry_set(manager='entries')`라고 지정해준다. 커스텀매니저를 사용하는이유는 필터링할수는 있지만, 애초에 어떠한 조건을 포함하고 있는 메서드로 만들면 편할 수 있다.
+: `objects` 는 기본 매니저, `objects=models.Manager()`로 선언
+
+: `entries`는 커스텀 매니저이다. `entires = EntryManager()`로 선언.
+
+: `entries`라고 매니저이름을 바꾸었으나, 역참조이름은 못바꾸기 때문에 `b.entry_set(manager='entries')`라고 선언하여 사용해야 한다. 커스텀매니저를 사용하는이유는 필터링할수는 있지만, 애초에 어떠한 조건을 포함하고 있는 메서드로 만들면 편할 수 있다.
+
+## Additional methods to handle related objects
+
+* add(obj1,obj2,...)
+
+* create(키워드인자)
+
+: 새로운 객체를 만들때 저장한다.
+
+* remove(obj1,obj2,...)
+
+* clear() 
+
+: 관련된 모든 객체 삭제
+
+* set(objs)
+
+: 관련된 객체를 대체
+
+`b = Blog.objects.get(id=1)`
+`b.entry_set.set([e1,e2])`
 
 
 
