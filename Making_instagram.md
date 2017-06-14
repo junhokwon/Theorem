@@ -532,7 +532,7 @@ return HttpResponseRedirect(url)
 
 	`photo=request.FILES['file']`
 	
-: request.FILES(딕셔너리이며,각각 `FileField또는 ImageField의 "키"를 포함하고 있다)에서 파일 업로드 방법(파일을 가져와야한다)
+: request.FILES(딕셔너리이며,각각 `FileField또는 ImageField의 "키"를 포함하고 있다) =  **파일 업로드 방식**(파일을 가져와야한다)
 
 `post/post_create.html`
 
@@ -549,7 +549,7 @@ return HttpResponseRedirect(url)
 
 : 파일선택창의 <input type=file, name="file>이라고 설정되어있다. 딕셔너리의 "키"명으로 `{file : ~~~~}로 저장되어 있다.
 
-: `request.FILES`는 request.method가 POST이고, form속성중 `enctype="multipart/form_data"`를 가진다면, 데이터만 포함오직 포함할 것이다. 다른말로 하면 `request.FILES`에는 텅빌것이다.
+: `request.FILES`는 요청파일업로드방식이고, request.method가 POST, form속성중 파일전송을 하기 위해서는`enctype="multipart/form_data"`를 가져야 한다.
 
 `photo = request.FILES['file']` : [키] ==값을 반환
 
@@ -557,7 +557,11 @@ return HttpResponseRedirect(url)
 
 : `request.POST`는 딕셔너리이며, POST요청시 name이 `comment`인 input에서 전달한 값을 가져옴. `<input type="text" name="comment" placeholder="댓글">` 즉 `request.POST`자체가 dict(딕셔너리)이고 `dict.get(key, (default=None or 키가 존재하지 않을때의 value))` 즉 `request.POST.get('comment','')`
 
-:  빈 문자열('')이나 None 모두 False으로 평가되므로, if not으로 댓글로 쓸 내용 또는 comment키가 전달되지 않을 경우를 검사해야 한다. ??
+:  빈 문자열('')이나 `default = None` 모두 False으로 평가되므로, `False`인경우 `if`문이 실행되지 않고 리턴된다. `default_value`는 선택적이고, 빈 문자열을 넣었기에, `comment`키에 해당하는 값이 오지 않았을경우, 오류가 발생되지 않는다. 만약  `('comment',)`일경우, 댓글로 쓸내용이 전달되지 않았기에 예외처리를 `if not`을 써서 해줘야 한다.
+
+* hasattr(object,name)
+
+: 인자는 하나의 객체나 문자열이며, 문자열이 객체의 속성중 하나의 이름이라면, 결과는 `True`이고, 이름과 맞는 문자열이나 객체가 없다면, 결과는 `False`이다.
 
 `if comment_string:`
 
@@ -592,28 +596,355 @@ Comment.objects.create(
 # template 세팅
 
 
-`<img src="{{ post.photo.url }}" alt="">` 
+![](/Users/mac/projects/images/스크린샷 2017-06-14 오후 7.46.29.png)
 
-: `Post`클래스의 `ImageField`로 만든   `photo`속성에다 `.url`을 실행하면 이미지가 나타난다. `post.photo.url`
+: `common`폴더안에는 `base.html`이 있고, `include`폴더안에는 `post.html`이 있다.
 
-![](/Users/mac/projects/images/스크린샷 2017-06-12 오후 4.35.12.png)
+: `include`폴더안에 `post.html`은 중복되는 부분에 모두 사용될 수 있는 `post.html`이다.
 
-`photo = models.ImageField(upload_to='post',blank=True` 추가
+* `if`
 
-![](/Users/mac/projects/images/스크린샷 2017-06-12 오후 4.36.12.png)
+```
+{% if athlete_list %}
+	number of athletes : {{ athlete_list|length }}
 
-: media/post/안에 설정된것을 볼 수 있다.
+{% elif athlete_in_locker_room_list %}
+	Athletes should be out of the locker room soon!
+	
+{% else %}
+	no athletes.
+{% endif %}
+```
+
+: `athlete_list`가 텅빈값이 아니라면,  운동선수들의 숫자는 `{{ athlete_list|length }}` 운동선수목록의 길이일것이다. 
+
+: `if tags`는 `and` `or` `not`,`==`,`!=`,`<=`,`>=`,`in`,`not`,`is not`
+
+: `if tag`에서 `filter`을 사용할 수 있다.
+
+```
+{% if messages|length >=100 %}
+	you have lots of messages today!
+{% endif %}
+
+```
+
+: `|(filter 조건)`
 
 
-# URL CONf
 
-: 정규표현식 하나가 일치하면 views.py에 보낸다. 요청이 views.py에 보내진다.
+`post/post_list.html`
 
-: 정규표현식중 그룹지정을한것이 키워드 인자로 주어진다.
+: 앞부분은 `base.html`에서 상속 
 
-# atom실행후 css 파일작업
+`{% extends 'common/base.html' %}`
 
-![](/Users/mac/projects/images/스크린샷 2017-06-13 오후 12.30.30.png)
+: 중복되는 부분은 `{% block content %}`와 `{% endblock %}`안에 감싸준다.
+
+`{% for post in posts %}`
+`{% endfor %}`
+
+: `posts`는 인스턴스로 `views.py`에서 만든 `post_list` 매서드에서 모든 Post목록을  posts라는 인스턴스에 담고`{'posts' : posts }`에 딕셔너리의 값으로 주고, 딕셔너리의 키값인 `posts`을  이용해 `html`파일에서 사용할 수 있다. `for`문을 돌리는 것은 반복적인 `post`를 리턴하겠다는 의미 
+
+* `for`
+
+```
+{% for athlete in athlete_list %}
+	<li>{{ athlete.name }}</li>
+{% endfor %}
+```
+
+`{% for obj in list reversed %}` 
+
+```
+{% for x,y in points %}
+	there is a point at {{ x }},{{ y }}
+{% endfor %}
+```
+
+: 리스트들의 리스트를 순회할 필요가 있을경우, `unpacking`을 사용하면 된다.
+
+```
+{% for key,value in date.items %}
+		{{ key }} : {{ value }}
+{% endfor %}
+```
+
+: 딕셔너리의 아이템으로 접근할 필요가 있을경우, 
+
+
+
+`{% include 'include/post.html' %}`
+
+* `include`
+
+: 템플릿을 읽고, 현재의 context에 렌더링해준다. 템플릿 안에 다른 템플릿을 `including` 하는 방식이다. 
+
+ex) `Hello, Jonh!"`이라는 결과를 보여주고 싶다면, `person`객체는 `Jonh`이라고 셋팅하고 `greeting`객체는 `Hello`라고 셋팅한다. 
+
+at `template`
+
+`{% include "name_snippet.html" %}`
+
+at `name_snippet.html` template
+
+`{{ greeting }}, {{ person|default:"friend" }}!`
+
+`{% include "name_snippet.html" with person='Jane' greeting='Hello' %}`
+
+: 이렇게 인자를 전달하거나, 템플릿 자체를 삽입시킬 수도 있다.
+
+
+# html 파일 만들기
+
+* `static/css`
+
+: static파일안에 css파일들을 넣어줘야 한다. static파일은 css,scss,images모음디렉토리들이 들어가야 한다. 또한 `settings.py`에서 경로를 지정해줘야 한다.
+
+```
+STATIC_DIR = os.path.join(BASE_DIR,'static')
+
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [
+	STATIC_DIR,
+]
+```
+
+: `/static`으로 오는 url패턴의 모든 파일들을 `STATIC_DIR`의 경로 `django_app/static`으로 들어오게 설정
+
+`include/base.html`
+
+: base.html에서는 모든 템플릿에 중복되는 html의 요소를 다 넣는다.
+
+`nav 상단바`
+
+![](/Users/mac/projects/images/스크린샷 2017-06-14 오후 8.48.38.png)
+
+```
+{% load static %}
+
+<link rel="stylesheet" href="{% static 'css/normalize.css' %}">
+<link rel="stylesheet" href="{% static 'css/base.css' %}">
+	<link rel="stylesheet" href="{% static 'css/layout.css' %}">
+	<link rel="stylesheet" href="{% static 'css/post.css' %}">
+```
+
+`{% load static %}`
+
+: static파일을 load할것이다.
+
+`{% static 'css/base.css' %}`
+
+: 연결할 static 파일의 링크를 선언해준다.
+
+: `nav바`는 크게 `wrap`이라는 `id요소`로 만든 박스로 묶고, 그안에 `top-header`라는 `div박스`안에 `left div`,`center div`, `right div`요소를 묶은후 각 3개의 div폴더중 center만 제외하고 왼쪽과 오른쪽은 a태그안에 img태그를 넣고  `<img src="{% static 'images/파일명' %}"`을 넣어줘야 한다. center div요소 안에는 `<input type="text" placeholder="검색">`을 넣어준다.
+
+`div.container` : 본문 전체 `div`박스 만들기
+
+```
+<body>
+< div id="wrap">
+<header class="top-header">
+<nav>
+	<div class ="nav-left nav-item">
+	<a href="#">
+	<img src="{% static 'images/파일명' %}>
+	</a>
+	</div>
+	
+	<div class ="nav-center nav-item">
+	<input ="text" placeholer="검색">
+	</div>
+	<div class="nav-right nav-item">
+	<a href="#">
+	<img src="{% static 'image/파일명' %}
+	</a>
+	<a href="#">
+	<img src="{% static 'image/파일명' %}
+	</a>
+	<a href="#">
+	<img src="{% static 'image/파일명' %}
+	</a>
+</div>
+</nav>
+</header>
+
+<div class="container">
+{% block content %}
+{% endblock %}
+</div>
+</div>
+</body>
+</html>
+```
+
+`static/scss/layout.scss`
+
+```
+$screen-tablet : 700px;
+# 반응형웹 최대 크기  700px
+$header-height : 83px;
+# header높이 지정
+
+header.top-header {
+	height : $header-height;
+	padding : 0 10px;
+	border-bottom : 1px solid black;
+}
+
+header.top-header > nav {
+	max-width : 1010px;
+	margin: 0 auto;
+	# 가운데정렬
+	# nav도 시맨틱태그로 크기가 있음
+	
+	height : $header-height;
+	.nav-item {
+		height: $header-height;
+		line-height: $header-height;
+		
+	.nav-item > a {
+		height: $header-height;
+		line-height: $header-height;
+		display: inline-block
+		#인라인요소를 유지하면서 블록처럼 어느정도 높이를 주는방식
+		
+		> img {
+			verticle-align:middle;
+			#수직중앙정렬
+			
+	.nav-left {
+		float:left;
+		margin-right:20px;
+		width:182px;
+	}
+	.nav-center {
+		width:147px;
+		float:left;
+	}
+	@media screen and (max-width: $screen-tablet {
+	# 반응형웹을 사용할때
+	# @mediea screen을 사용하고
+	#  $screen-tablet :반응형웹적용될 크기
+	.nav-center {
+		display:none;
+		#검색창은 사라지도록
+		}
+	}
+	# 반응형웹은 .nav-center만 포함
+	.nav-right {
+		width:150px;
+		float:right;
+		a {
+			padding : 0 10px;
+			}
+		}
+	}
+	
+	.container {
+		max-width:1010px;
+		margin : 0 auto
+		padding-top : 40px;
+		@media screen and (max-width: $screen-tablet) {
+		padding-top: 0;
+		}
+	}
+```
+
+
+
+`static/scss/base.scss`
+
+```
+html,body {
+	font-size : 14px;
+	line-height : 18px;
+}
+input[type="text"] {
+	border : 1px solid black;
+	border-radius : 3px
+	color :
+	font-size : 12px;
+	outline : none;
+	padding : 3px 10px 3px 10px;
+	background-color :
+}
+```
+
+: `line-height`은 텍스트의 상하높이를 의미하며, `height`와 높이를 맞추면, 텍스트간의 수직정렬이 된다.
+
+: `border-radius`은 텍스트의 외곽선을 둥글게 하는것이다.
+
+
+
+
+`include/post.html`
+
+![](/Users/mac/projects/images/스크린샷 2017-06-14 오후 10.26.02.png)
+
+: 웹사이트에서 주로 사용하는 문서구조를 태그로 약속한것이다. `header : 머릿말`,`nav : 내비게이션 링크`,`section:콘텐츠영역`,`article:콘텐츠내용`,`aside:본문이외의내용`,`footer:꼬릿말,제작자 및 저작권 정보 표시`
+
+
+: `article.post`로 전체로 묶고, `header부분`은 `div요소`로 `좌측과 우측`을 만든다. 그다음에 올 `photo container`안에 이미지 링크`{{ post.photo.url }}`를 걸어둔다. 그다음에는 `button클래스`를 만들고, 그안에 `a태그 안에 이미지태그`를 넣어둔다. 그다음에 `p태그로 좋아요``{{ post.like_count }}`를 만든다. `comment container div`안에 `comment div요소 `안에` a링크`로 `{{ comment.author }}`, `span요소`로  `{{ comment.content }}`, `a링크`로 `comment-tag`를 만든다. 그리고 마지막에  `p요소`로 `{{ post.created_date }}`를 만들고 `form요소`로 안에 `input type ="text"`로 댓글달기를 만들어준다.
+
+```
+<article class="post">
+<header>
+<div class="post-header-left">
+	<img src="" alt="">
+	<span>{{ post.author }}</span>
+	<div class="post-header-right">
+	??
+	</div>
+</header>
+<div class="post-photo-container">
+	<img src ="{{ post.photo.url }}" alt="">
+</div>
+<div class="post-btn-container">
+	<a href="#">
+	<img src="" alt ="">
+	</a>
+	<a href ="#">
+	<img src="" alt="">
+	</a>
+	</div>
+<p>좋아요 {{ post.like_count }}개 </p>
+<div class="post-comment-container">
+{% for comment in post.comment_set.all|slice:":4" %}
+
+<div class="post-comment">
+	<a href="" class="comment-author">{{ comment.author }}</a>
+	<span class="comment-content">{{ comment.content }}</span>
+	<a href=""  class="comment-tag"></a>
+	</div>
+{% endfor %}
+</div>
+<p class="created">{{ post.created_date }}</p>
+<form action="">
+	<input type="text" placeholder="댓글달기">
+	</form>
+</article>
+```
+
+`static/scss/post.scss`
+
+```
+article.post {
+	post-photo-container {
+		img { width : 100%; }
+		# 반응형웹에서 사진크기 자동조절
+		# width:100%;
+		}
+	}
+```
+
+
+
+
+
+
+
+
 
 
 
