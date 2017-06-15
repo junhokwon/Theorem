@@ -435,7 +435,7 @@ def post_create(request):
 
 * `get_user_model()`
 
-: User을 직접 참조하는 대신에, `django.contrib.auth.get_user_model()`을 사용한다. 이 메서드는 현재의 활동중인 `user model`이나 `custom user`을 리턴한다. `models.py`에 `User`대신에`settings.AUTH_USER_MODEL`로 바꿔준다.
+: User을 직접 참조하는 대신에, `django.contrib.auth.get_user_model()`을 사용한다. 이 메서드는 현재의 활동중인 **`user model`이나 `custom user`**을 리턴한다. `models.py`에 `User`대신에`settings.AUTH_USER_MODEL`로 바꿔준다.
 
 ## post_detail만들기
 
@@ -448,13 +448,35 @@ def post_create(request):
 try:
 	post = Post.objects.get(pk=post_pk)
 except Post.DoesNotExist as e:
-```
 
+
+(1) return HttpResponseNotFound('post not found, 'detail : {}'.format(e))
+
+(2) return redirect('post:post_list')
+
+(3) return HttpResponse(reverse('post:post_list)
+
+(4) url = reverse('post:post_list')
+return HttpResponseRedirect(url)
+
+```
+==
+
+```
+* get_object_or_404()
+
+from django.shortcuts import get_object_or_404
+
+def post_detail(request,post_pk):
+	post = get_object_or_404(Post,pk=post_pk)
+
+
+```
 : 이경우는  `/post/124214124`와 같이 아무숫자나 올수 있기때문에 404 에러가 발생한다. 
 
 (1) 404 Notfound를 띄어준다.
 
-`return HttpResponseNotFound('post not found , detail : {}'.format(e))`
+`return HttpResponseNotFound('post not found , 'detail : {}'.format(e))`
 
 (2) post_list view로 돌아간다.
 
@@ -483,6 +505,7 @@ def get_absolute_url(self):
 
 (3) 하드코딩된 url경로일경우
 `return redirect('/some/url/')`
+
 `return redirect('https://~절대경로)`
 
 
@@ -492,7 +515,8 @@ def get_absolute_url(self):
 url = reverse('post:post_list')
 return HttpResponseRedirect(url)
 ```
-== `redirect('post:post_list')`
+== 
+`HttpResponse(reverse('post:post_list')`
 
 
 * render 대신 전체과정을 서술
@@ -557,7 +581,15 @@ return HttpResponseRedirect(url)
 
 : `request.POST`는 딕셔너리이며, POST요청시 name이 `comment`인 input에서 전달한 값을 가져옴. `<input type="text" name="comment" placeholder="댓글">` 즉 `request.POST`자체가 dict(딕셔너리)이고 `dict.get(key, (default=None or 키가 존재하지 않을때의 value))` 즉 `request.POST.get('comment','')`
 
-:  빈 문자열('')이나 `default = None` 모두 False으로 평가되므로, `False`인경우 `if`문이 실행되지 않고 리턴된다. `default_value`는 선택적이고, 빈 문자열을 넣었기에, `comment`키에 해당하는 값이 오지 않았을경우, 오류가 발생되지 않는다. 만약  `('comment',)`일경우, 댓글로 쓸내용이 전달되지 않았기에 예외처리를 `if not`을 써서 해줘야 한다.
+:  빈 문자열('')이나 `default = None` 모두 `False`으로 평가되므로, `False`인경우 `if`문이 실행되지 않고 리턴된다. `if not`으로 `댓글로 쓸 내용` 또는 `comment키가 전달되지 않았음`(만약에 html파일에서  <input name="comment">를 쓰지 않았을 경우)를 검사가능
+
+```
+if not comment_string:
+# comment_string이 오지 않았을경우
+	return redirect('post:post_create')
+```
+
+: 이문장을 `comment_string = request.POST.get('comment,'')`에서 두번째 인자로 빈문자열 넣어놨기에, if문에서 빈문자열이나 None은 False로 처리되며 if문이 실행되지 않고 그대로 리턴된다.
 
 * hasattr(object,name)
 
@@ -936,6 +968,682 @@ article.post {
 		# width:100%;
 		}
 	}
+```
+
+# User기능 만들기
+
+## (1) 이론
+
+## Autentification request
+
+`User objects`
+
+`superusers`또는 `staff`users는`user object`이다. 전형적으로 사이트와 연결되어 있는 사람들이 이용할 수 있는 기능을 담는다. `접근제한`,`프로필등록`등
+
+
+`user의 기본값 속성` : `username`,`password`,`email`,`first_name`,`last_name`
+
+## Creating users
+
+: 직접적인 방법은 `create_user()`함수를 사용하는 것이다.
+
+`create_user(username,email=None,password=None, extra_fields)`
+
+: `username`과 `password`은 주어지고, 이메일주소는 소문자처리가 자동으로 된다.
+
+: `extra_fields`는 키워드인자로 `custom_user_model`에서 추가한 기능등이 포함된다.
+
+```
+from django.contrib.auth.models import User
+user = User.objects.create_user('john','email주소,'password')
+# create함수는 저장기능이 내제되어있다.
+```
+
+* User(장고User)에서 새로 만들경우,
+
+`User.objects.create_user('name','email address','password')`
+
+
+* 관리자 생성방법
+
+`./manage.py createsuperuser`
+
+## changing passwords
+
+```
+from django.contrib.auth.models import User
+u = User.objects.get(username='john')
+u.set_password('new password')
+u.save()
+```
+
+: `set_password('바꿀 비밀번호')`
+
+## Authenficating users
+
+`authentificate(request=None, **credentials)`
+
+: `authenticate()`은 `authentification backend`에서 요청한 user가 있는지 없는지 `username`과 `password`를 기준으로 확인한 결과를 user인스턴스에 할당
+
+: `none`을 비교할때, 한개의 객체를 여러번 쓸때
+
+` is not`은 객체를 비교하는것이다.
+` !=` 은 값을 비교하는 것이다.
+
+![](/Users/mac/projects/images/스크린샷 2017-06-15 오전 11.06.30.png)
+
+```
+from django.contrib.auth import authenticate
+
+user = authenticate(username="john",password="secret")
+
+if user is not None:
+	# user가 백엔드에서 체크된다면,
+else:
+	# user가 백엔드에서 체크되지 않는다면,
+	
+```
+
+: user인스턴스에는 요청한 user가 있는지 없는지가 들어있다. 
+
+`if user in not None:`
+: `요청한 user`가 있다면,
+`else:`
+: `요청한 user`가 없다면,
+
+## Authentication in Web requests
+
+`세션 : 서버쪽에서 어떤 특정 키값을 저장해두는곳`
+
+`미들웨어 : 장고안쪽에서 request와 response 중간에서 작업을 하는것`
+
+: 장고는 세션을 사용하고, 미들웨어에서 요청한 객체에서 인증시스템을 가져온다.
+
+`request.user`는 현재 user을 나타내는 모든 request의 속성을 제공한다.
+
+: 현재 user가 로그인하지 않았을 경우, 이 속성은 `AnonymousUser`의 인스턴스로 세팅이 된다. 
+
+* `AnonymousUser`
+
+`django.contrib.auth.models.AnonymouseUser`
+
+`id`값은 항상 `None`
+`username`은 항상 빈 문자열
+`get_username()`은 항상 빈 문자열 리턴
+`is_anonymous : True`
+`is_authenticated : False`
+`is_staff and is_superuser : False`
+`is_active : False`
+`groups and user_permissions` : 텅빈값
+
+`set_password(),check_password(),save(),delete()`는 `NotImplementedError`발생
+
+```
+if request.user.is_authenticated:
+	# authenticated users에서 
+else:
+	# anonymous users에서
+```
+
+: 이미 로그인된 유저가 있는가 없는가.
+
+## How to log a user in
+
+`login(request,user,backend=None)`함수를 사용한다. user인자에 들어갈 변수는 `이미 인증된 아이디와 비밀번호`  : `user=authenticate(request,username=username,password=password)`를 의미한다.
+
+: `login()`함수는 `HttpRequest`객체와 `User` 객체를 내제한다. `login()`함수는  장고를 이용하여 `세션에서 user's ID`를 저장한다. 미래에 올 request에서 user's detail을 가져올 수 있다. (login함수에 세번째 인자로 `backend`인자를 줄경우 + 2가지조건)
+
+```
+from django.contrib.auth import authenticate,login
+
+def my_view(request):
+	username= request.POST['username']
+	password = request.POST['password']
+	user = authenticate(request,username=username,password=password)
+	#세션키값들과 비교하여 회원가입한 id와 비밀번호 인지 확인된 user을 user인스턴스에 할당
+	
+	if user is not None:
+		# 세션값과비교한 요청한 user가 있다면,
+		login(request,user)
+		#인증된 아이디와 비밀번호로 로그인시도
+		#보내고싶은 페이지로 Redirect
+	else:
+		return HttpResponse("invalid login error")
+
+```
+
+
+## How to log a user out
+
+`logout(request)`
+
+`logout_view(request)`
+
+: 로그아웃할때 쓰는 함수
+
+```
+from django.contrib.auth import logout
+
+def logout_view(request):
+	logout(request)
+	redirect (" ")
+```
+
+: `logout()`함수는 user가 로그인 하지않는다면, 어떠한 에러도 발생시키지 않는다.
+
+: 현재 세션에 저장되어있는 현재의 request 데이터는 완벽하게 삭제된다. 모든 존재하는 데이터는 제거된다. 다른사람들이 로그인해서 이전의 user세션데이터 접근을 막기 위한 방법이다. 
+		
+		
+## Limiting access to logged-in users
+
+: 이미 로그인한 유저의 접근제한 코드
+
+```
+from django.conf import settings
+from django.shortcuts import redirect
+
+def my_view(request):
+	if not request.user.is_authenticated:
+	return render(request,'myapp/login.html')
+```
+
+: `인증이 완료된 요청한 user` = `request.user.is_authenticated`
+
+
+-
+
+## (2) 실습
+
+`config/urls.py`
+
+```
+urlpatterns = [
+	url(r'^member/', include('member.urls')),
+```
+
+`member/urls.py`
+
+```
+from django.conf.urls import url
+
+from . import views
+
+app_name = 'member'
+urlpatterns = [
+	url(r'^login/$, views.login, name='login'),
+	url(r'^logout/$, views.logout, name='logout'),
+	url(r'^signup/$', views.signup, name='signup'),
+```
+
+`member/views.py`
+
+```
+from django.contrib.auth import authenticate,login as django_login,
+logout as django_logout,get_user_model
+
+from django.http import HttpResponse
+from django.shortcuts import render,redirect
+
+from .forms import LoginForm
+
+User = get_user_model
+```
+
+* 로그인기능
+
+**Form클라스 미사용시 **
+
+```
+def login(request):
+	if request.method == 'POST':
+	username = request.POST['username']
+	password = request.POST['password']
+```
+
+
+: 요청받은 `Post데이터`(로그인시도를 한 아이디와 비밀번호)에서 username,password키가 가진값들을 username,password인스턴스에 할당,
+```
+	<input type='text' name='username'>
+	<input type='password' name='password'>
+```
+에서 name으로 지정되는 이름은 `딕셔너리의 "키"`가 된다.
+
+```
+user = authenticate(
+	request,
+	username=username,
+	password=password,
+)
+```
+
+: `authenticate()`함수는 기존에 존재하는 세션값에 저장되어있는 user.detail()의 키값과 요청한 키값을 비교해서 결과를 리턴
+
+```
+if user is Not None:
+	django_login(request,user)
+	return redirect('post:post_list')
+```
+
+: 정상적으로 인증되어 User객체를 얻은경우(user변수가 None이 아닌경우) `login()`함수를 사용해서 로그인을 시킨다. `django_login`인 이유는 `def login`과 겹치기 때문이다. `import`할때도, `import login as django_login`별칭을 사용한다. 로그인한 이후의  `request/response`에서는 사용자가 인증된 상태로 통신이 이루어진다. 로그인이 완료된후 `post_list`뷰로 리다이렉트 처리 
+
+```
+else:
+	if request.user.is_authenticated:
+		return redircet('post:post_list')
+	else:
+		return render(request,'member/login.html')
+```
+
+: 이미 로그인이 완료된 상태일 경우에는,
+
+`request.user.is_authenticated` 이미 인증이완료된 `user`일경우, `post_list로 redirect`, 이미 인증된 `user`가 아닐경우, `다시 login창으로 render`
+
+**Form 동적클라스 사용시**
+
+https://docs.djangoproject.com/en/1.11/topics/forms/#the-form-class
+
+
+: form 동적구성으로 `html파일`에 직접  `input요소`를 만들지 않고, `forms.py`에다 만들어서 적용함.
+
+`member/forms.py`
+
+```
+from django import forms
+from django.contrib.auth import authenticate
+```
+
+```
+class LoginForm(forms.Form):
+	def __init__(self,*args,**kwargs):
+	kwargs.setdefault('label_suffix','')
+	super().__init__(*args, **kwargs)
+```
+
+: `forms.py`에서 `LoginForm`을 생성한다.
+
+* `setdefault()`
+
+: `get()`과 유사하지만, 딕셔너리에 키값이 존재하지 않아도 쓸 수 있다. 키값이 있으면 리턴하고 없을경우, default value(기본값)을 리턴한다.
+
+`dict.setdefault(key, default=None)`
+
+* `label_suffix`
+
+: form이 렌더링될때, 어떠한 label name이 추가된후의 바뀔수있는 문자열(기본값은 `colon(:)`)
+
+: `초기화메서드 사용후` `kwargs(키워드인자 딕셔너리).setdefault('label_suffix','')`
+
+: `label_suffix`는 기본값이 `콜론`, 즉 콜론이 키값으로 오는 값을 가져온다. 콜론으로된 키값이 없을경우, ('')빈문자열을 리턴
+
+`super().__init__(*args,**kwargs)` : setdefault로 키워드인자를 가져오고 부모메서드를 이어서 실행
+
+```
+username = forms.CharField(
+	max_length=30,
+	widget=forms.TextInput(
+		attrs={
+			'placeholder':'사용자아이디 입력하시오',
+			}
+		)
+	)
+```
+
+: username을 CharField를 사용하여 만든다. `username`인스턴스(필드명)은 `Html form`에서 `name`으로 들어간다. 최대길이는 30, **`widget=forms.TextInput`은 `HTML form`에서의 `<input type="text"`>**와 같은 의미이다. 
+
+`attrs = { 'placeholder' }`는 빈값에 들어갈 문자열이다. 즉 `Html form`으로 `<input type="text", name="username" placeholder="사용자아이디입력하세요">`와 같다.
+
+```
+password = forms.CharField(
+	widget=forms.PasswordInput(
+		attrs={
+			'placeholder' : '비밀번호를 입력하세요.',
+			}
+		)
+	)
+
+```
+
+: `Html form`에서 `<input type ='password', name='password', placeholder='비밀번호를 입력하세요'>`와 같다.
+
+* `Form 유효성검사`
+
+: `is_valid`를 실행했을때, Form내부의 모든 field에 대한 유효성 검증을 실행하는 메서드, 지금예에서는 `max_length=30` 아이디 최대길이 30자를 넘으면 안되는 조건을 검사할것이다. 특수문자열이나, 반복되는 문자열 2번반복안되는것같은 조건들은 유효성검사에서 실행해서 맞지않는것은 다시 `login.html`로 리턴한다.
+
+```
+def clean(self):
+	cleaned_data = super().clean()
+```
+
+: `clean()`메서드를 실행한 딕셔너리로 된 기본결과를 가져와서 `cleaned_date`에 할당 `clean()`메서드는 모든필드를 다 가져온다. 즉 검사할 모든 필드요소들을 다 가져와서 `cleaned_data`에 할당한다. `clean()`메서드는 `부모요소의 함수`이므로 `super()`을 써서 `부모메서드`를 사용하겠다고 지정해야 한다. 
+
+```
+username = cleaned_data.get('username')
+password = cleaned_date.get('password')
+```
+
+: `get(key, default=None)`메서드를 사용하여 딕셔너리에서 username을 키로 가지는 값, password를 키로 가지는 값을 가져와서 `username`,`password`라는 인스턴스에 할당한다.
+
+```
+user = authenticate(
+	username=username,
+	password=password,
+)
+```
+
+: 로그인 요청한 `username`,`password`가 세션 키값들과 같은지 비교하기 위해서 `authenticate()`함수를 사용한다.
+
+```
+if user is Not None:
+	self.cleaned_data['user'] = user
+```
+
+: `인증된 user`일경우, `세션 키`에 인증된 `user인스턴스`를 `self.cleaned_data['user']`에 할당한다. 즉 ['user'], Form에서 딕셔너리에 user라는 이름의 키에 해당하는 `모든 필드요소값을 가져오는것`에 `세션키에 인증된 user`을 넣어, 모든 `user`를 키로 가지는 **form의 값들은 인증된 user라고 할 수 있다.**
+
+```
+else:
+	raise forms.ValidationError(
+		'login credential not valid')
+```
+
+: 세션키와 비교하여 없는 user인 경우에는 `is_valid()`를 통과하지 못하도록, `ValidationError`을 발생시킨다.
+
+`return self.cleaned_date`
+
+: `clean()`함수를 실행했을경우, 최종적으로 `self.cleaned_data`을 리턴한다.
+
+`member/views.py`
+
+* Form클래스 사용시
+
+: `forms.py`에서 만들어둔 `LoginForm()`을 활용한다.
+
+```
+form = LoginForm(data=request.Post)
+```
+
+: `Bound form(어떤값이들어간)`을 생성한다. `data=request.POST`: `POST`요청을 한 딕셔너리를 data에 할당한다.
+
+```
+if form.is_valid():
+	user = form.cleaned_data['user']
+	django_login(request,user)
+	return redirect('post:post_list')
+```
+
+: `member/forms.py`에서 이미 세션키의 값과 일치하는 user들을  form.cleaned_data['user']에 넣었기에, `user`인스턴스는 인증절차가 끝난 `user`객체들의 모음이다.
+그렇기 때문에 로그인을 시켜준다.
+`django_login(request,user)`
+로그인이 완료되면 post_list로 redirect 해준다.
+
+```
+if form.is_valid():
+	user = form.cleaned_data['user']
+	django_login(request,user)
+	return redirect('post:post_list')
+
+else:
+	return HttpResponse('login credentials invalid')
+```
+
+: `username`또는 `password`가 틀린경우는 `user`변수가 `None`이다. 로그인에  실패했음을 알리기 위해서 `HttpResponse`를 사용한다.
+
+```
+else:
+	if request.user.is_authenticated:
+		return redirect('post:post_list')
+```
+
+: `else`는 `get`요청이 왔을경우는 이미 로그인된 상태일것이다. 이미 로그인했기에 post_list로 redirect
+
+```
+else:
+	if request.user.is_authenticated:
+		return redirect('post:post_list')
+	else:
+		form = LoginForm()
+		context = {
+			'form' : form,
+		}
+	return render(request, 'member/login.html', context)
+```
+
+: 이미 로그인된것이 아닌데 get요청으로 왔다면, login.html을 render해서 리턴해준다. `form=LoginForm()`은 not Bound값으로 빈값을 가진 `LoginForm()`의 인스턴스 form객체를 만들어 `context`에 넘긴다.
+
+* 로그아웃기능
+
+```
+def logout(request)
+	django_logout(request)
+	return redirect('post:post_list')
+```
+
+`templates/common/base.html` 수정
+
+: 로그인과 로그아웃 기능을 만들었으니 template에서 사용
+
+![](/Users/mac/projects/images/스크린샷 2017-06-15 오후 8.37.46.png)
+
+```
+<nav>
+	<div>
+		{% if user.is_authenticated %}
+		<span> {{ user }}로 로그인중 </span>
+		<a href="{% url 'member:logout' %} class="btn">로그아웃</a>
+		{% else %}
+		<a href="{% url 'member:login %}" class="btn">로그인</a>
+		{% endif %}
+	</div>
+</nav>
+</header>
+
+```
+
+: 구현하고자 하는 html파일요소는 로그인 되어있으면 <유저명>으로 로그인중 표시, 안되어있으면  a태그로 로그인창으로 이동할 수 있는 링크를 추가,
+
+```
+{% if ~ %}
+{% else %}
+{% endif %}
+```
+을 적절하게 사용하여 표현함
+
+`templates/include/post.html`
+
+: 중복될 요소를 담고있는 `post.html`에서 수정할 부분은 사진을 누르면 디테일 페이지로 링크를 거는것이다.
+
+```
+<div class="post-photo-container">
+	{% if type='list'%}
+	<a href="{% url 'post:post_detail' post_pk = post.pk %}
+	<img src="{{ post.photo.url }}" alt="">
+	{% else %}
+	<img src="{{ post.photo.url }}" alt="">
+	{% endif %}
+
+```
+
+: `{% if type =='list %}`는 타입이 리스트로 올경우에 `detail페이지로 링크`를 걸어줘라, `{% else %}` 타입이 리스트가 아닐경우는 링크를걸지말고 사진만 보여줘라
+
+`post/post_list.html`
+
+`{% include 'include/post.html' with type='list' %}`
+
+: 키워드인자 `(type='list')`을 사용해서 `post.html`에 쓸수 있도록 추가 ??
+
+`member/login.html`
+
+
+```
+{% extends 'common/base.html' %}
+
+{% block content %}
+<div>
+	<form action='' method='post'>
+	{% csrf_token %}
+	{{ form }}
+	<button type="submit">로그인!</button>
+</div>
+{% endblock %}
+```
+
+`member/views.py`
+
+* 회원가입 기능 만들기
+
+```
+def singup(request):
+	if request.method =='POST':
+		username = request.POST['username']
+		password1 = request.POST['password1']
+		password2 = request.POST['password2']
+```
+
+: 일단 회원가입은 서버에 어떤 데이터를 추가하는 것이므로 `POST`요청을 받은 딕셔너리들의 키값을 써야만 한다. `POST`요청을 한 딕셔너리의 키(username,password1,password2)에 대한 딕셔너리 값을 인스턴스에 할당
+
+```
+if User.objects.filter(username=username).exists():
+	return HttpResponse('아이디가 이미 존재합니다.')
+```
+
+: 이미 존재하는 값을 확인하기 위해서는 `exists()`함수를 사용한다. 이미 존재하는 username일경우에는 `HttpResponse`을 사용하여 이미존재한다고 알려줌.
+
+```
+elif password1 != password2:
+	return HttpResponse('패스워드 확인값이 틀립니다. 다시써주세요.')
+```
+
+: 아이디값은 같으나,비밀번호확인값이 다른경우는 `HttpResponse`을 사용하여 패스워드 확인값을 틀리다고 알려줌
+
+```
+user = User.objects.create_user(
+	username=username,
+	password=password1,
+	)
+```
+
+: 위의 두경우 (아이디가 이미 존재하거나, 비밀번호 확인이 틀릴경우)를 제외하고 완벽할경우, `User.objects.create_user`을 사용하여 `User`객체를 새로 생성한다. 생성하려면 `username`과 `password`값만 주면 생성되고 자동으로 저장이 된다.
+
+```
+django_login(request,user)
+return redirect('post:post_list')
+```
+
+: 로그인을 시킨후, post_list으로 redirect
+
+```
+else:
+	return render(request,'member/signup.html')
+```
+
+: `get`요청으로 왔을경우, `member/signup,html`을 보여준다.
+
+`member/signup.html`
+
+```
+
+{% extends 'common/base.html' %}
+
+{% block content %}
+<div>
+	<form action='',method='post'>
+	{% csrf_token %}
+	<div>
+		<label for='id-username">Username</label>
+		<input id='id-username' type='text', name='username'>
+	</div>
+	<div>
+	<label for="id-password1">password1</label>
+	<input id='id-password1' type='password' name='password1'>
+	</div>
+	<div>
+	<label for='id-password2">password2</label>
+	<input id='id-password2' type='password' name='password2'>
+	</div>
+	<button type="submit>가입하기</button>
+	</div>
+	</form>
+	</div>
+{% endblock %}
+
+```
+
+![](/Users/mac/projects/images/스크린샷 2017-06-15 오후 9.10.34.png)
+
+: <label>과 <input>요소의 id값을 일치시켜준다면 `username`이라는 `label`요소를 클릭하면 `input`요소로 커서가 들어간다.
+
+
+
+`commont/base.html`의 이부분을
+
+```
+<nav>
+				<div>
+					{% if user.is_authenticated %}
+						<span>{{ user }}로 로그인 중</span>
+
+					<a href="{% url 'member:logout' %}" class="btn">로그아웃</a>
+					{% else %}
+					<a href="{% url 'member:login' %}" class="btn">로그인</a>
+					{% endif %}
+				</div>
+			</nav>
+```
+
+
+
+`scss/_variables.scss`
+
+```
+$color-text-common: rgb(38, 38, 38);
+$color-border: rgba(0,0,0,.0975);
+```
+:`_variables.scss`와 같이 `_`언더스코어를 앞에 단 이름은 컴파일 되지 않는다
+
+
+`scss/layout.scss` 수정부분
+
+```
+@import 'variables';
+
+수정된 부분
+
+
+
+header.top-header > nav:nth-child(1) {
+max-width:1010px;
+margin: 0 auto;
+padding : 0 10px;
+#처음쓰인 nav로 바뀜
+# padding 추가
+
+header.top-header > nav:nth-child(2) {
+	border-top :1px solid $color-border;
+	text-align: right;
+	
+	> div {
+	max-width:1010px;
+	margin : 0 auto;
+	}
+}
+# nav안에 div요소를 만들어 최대크기 지정
+
+```
+
+`scss/common.scss`
+
+```
+@import 'variables';
+
+.btn {
+	padding: 4px 10px;
+	border : 1px solid $color-border;
+	border-radius:3px;
+	cursor:pointer;
+	text-decoration : none;
+}
+
+#common/base.html에서 a요소 class명을 btn으로 주었다. a요소 class명을 btn으로 주면 박스가 만들어진다.
+
 ```
 
 
