@@ -503,8 +503,8 @@ def get_absolute_url(self):
 
 `return redirect('post:post_detail',post_pk=post.pk)`
 
-(3) 하드코딩된 url경로일경우
-`return redirect('/some/url/')`
+(3) **하드코딩된 url경로일경우**
+`return redirect('/some/url/'(상대경로)`
 
 `return redirect('https://~절대경로)`
 
@@ -515,8 +515,7 @@ def get_absolute_url(self):
 url = reverse('post:post_list')
 return HttpResponseRedirect(url)
 ```
-== 
-`HttpResponse(reverse('post:post_list')`
+
 
 
 * render 대신 전체과정을 서술
@@ -1307,14 +1306,14 @@ password = forms.CharField(
 
 * `Form 유효성검사`
 
-: `is_valid`를 실행했을때, Form내부의 모든 field에 대한 유효성 검증을 실행하는 메서드, 지금예에서는 `max_length=30` 아이디 최대길이 30자를 넘으면 안되는 조건을 검사할것이다. 특수문자열이나, 반복되는 문자열 2번반복안되는것같은 조건들은 유효성검사에서 실행해서 맞지않는것은 다시 `login.html`로 리턴한다.
+: `is_valid`를 실행했을때, `Form내부`의 `모든 field에 대한 유효성 검증`을 실행하는 메서드, 지금 예에서는 `max_length=30` 아이디 최대길이 30자를 넘으면 안되는 조건을 검사할것이다. 특수문자열이나, 반복되는 문자열(2번반복안되는것같은 조건)들은 유효성검사에서 실행해서 맞지않는것은 다시 `login.html`로 리턴한다.
 
 ```
 def clean(self):
 	cleaned_data = super().clean()
 ```
 
-: `clean()`메서드를 실행한 딕셔너리로 된 기본결과를 가져와서 `cleaned_date`에 할당 `clean()`메서드는 모든필드를 다 가져온다. 즉 검사할 모든 필드요소들을 다 가져와서 `cleaned_data`에 할당한다. `clean()`메서드는 `부모요소의 함수`이므로 `super()`을 써서 `부모메서드`를 사용하겠다고 지정해야 한다. 
+: `clean()`메서드를 실행한 딕셔너리로 된 기본결과를 가져와서 `cleaned_date`에 할당 `clean()`메서드는 모든필드를 다 가져온다. 즉 검사할 모든 필드요소들을 다 가져와서 `cleaned_data`에 할당한다. `clean()`메서드는 `부모요소의 함수`이므로 `super()`을 써서 `부모메서드`를 사용하겠다고 지정해야 한다. `super().clean()`은 일단 바로위의 부모요소에서 유효성검사를 실행한다. 어떤값을 리턴안할수도 있다. 
 
 ```
 username = cleaned_data.get('username')
@@ -1337,7 +1336,7 @@ if user is Not None:
 	self.cleaned_data['user'] = user
 ```
 
-: `인증된 user`일경우, `세션 키`에 인증된 `user인스턴스`를 `self.cleaned_data['user']`에 할당한다. 즉 ['user'], Form에서 딕셔너리에 user라는 이름의 키에 해당하는 `모든 필드요소값을 가져오는것`에 `세션키에 인증된 user`을 넣어, 모든 `user`를 키로 가지는 **form의 값들은 인증된 user라고 할 수 있다.**
+: `인증된 user`일경우, `세션 키`에 인증된 `user인스턴스`를 `self.cleaned_data['user']`에 할당한다. 즉 ['user'], Form에서 딕셔너리에 `user라는 이름의 키`에 해당하는 `모든 필드요소값을 가져오는것`에 `세션키에 인증된 user`을 넣어, 모든 `user`를 키로 가지는 **form의 값들은 인증된 user라고 할 수 있다.** `self`인스턴스 `def clean(self):`에서의 self인스턴스를 가져와서 `self.cleaned_data['user']` 을 실행시켜라 `self`는 딕셔너리이다.
 
 ```
 else:
@@ -1350,6 +1349,13 @@ else:
 `return self.cleaned_date`
 
 : `clean()`함수를 실행했을경우, 최종적으로 `self.cleaned_data`을 리턴한다.
+`self.cleanded_data`는 `인증된 User`가 포함된 모든 필드 요소의 딕셔너리이다.
+
+: `clean_<fieldname>` : `clean()`함수를 거친(유효성검사를 끝낸) 필드을 또다시 검사한다.
+
+: `Field_clean()` : 필드타입에 대해 검사
+
+: `form.clean` : 폼 자체의 어떤에러를 검사
 
 `member/views.py`
 
@@ -1468,7 +1474,7 @@ def logout(request)
 
 `{% include 'include/post.html' with type='list' %}`
 
-: 키워드인자 `(type='list')`을 사용해서 `post.html`에 쓸수 있도록 추가 ??
+: 키워드인자 `(type='list')`를 변수로 넣어서, `include`함수로 `type='list'`라는 변수를 넣어서`render`하라는 조건.
 
 `member/login.html`
 
@@ -1646,8 +1652,598 @@ header.top-header > nav:nth-child(2) {
 
 ```
 
+: 현재 만들어진 회원가입기능, 로그인기능을 `member/forms`에 다 넣어서 쓰기에, 구분해서 `Form`을 동적으로 구성하기위해서 파일을 구분한다.
+
+# User에 관한 `Form`동적구성하기
+
+`member/forms/`안에 `__init__.py`,`login.py`를 넣는다.
+`__init__.py`안에 `from .login import LoginForm`을 넣는다.
+
+* `LoginForm` 만들기
+
+```
+from django import forms
+from django.contrib.auth import authenticate
+```
+
+: forms는 `django`에서 import한다
+
+```
+class LoginForm(forms.Form):
+	username = forms.CharField(
+		max_length=30,
+		widget = forms.TextInput(
+			attrs={
+				'placeholder' : '사용자 아이디를 입력하세요',
+				}
+			)
+		)
+	password = forms.CharField(
+		widget=forms.PasswordInput(
+		attrs={
+			'placeholder' : '비밀번호를 입력하세요',
+			}
+		)
+	)
+```
+
+: username의 필드는 html파일에서 `<input type='text' name='username',placeholder='~'>
+`
+password의 필드는 html파일에서 `<input type='password' name='password',placeholder='~'>`
+
+* `is_valid`메서드
+
+: `Form내부`의 모든 Field에 대한 `유효성 검증`을 실행하는 메서드를 만들기
+
+```
+def clean(self):
+	cleaned_data = super().clean()
+	username= cleaned_data.get('username')
+	password = cleaned_data.get('password')
+
+```
+: `cleaned_data = super().clean()`을 선언하는것보다 `self`인스턴스내에 `clean()`메서드가 들어있기에, `self`인스턴스.속성으로 실행시키는것이 효율적이다.
+
+```
+def clean(self):
+	username=self.cleaned_date.get('username')
+password=self.cleaned_date.get('password')
+```
+
+: `self.cleaned_date`는 `self`라는 인스턴스는 `clean()`메서드가 들어있기에 직접 실행시켜 제정된 결과를 `get()`메서드를 활용하여 가져온다. `get()`메서드를 사용하는 이유는 빈값이 올경우(아이디나 비밀번호가 빈값으로 올경우) `False`로 인식하여 함수를 실행하지 않기때문에, 빈값으로 올경우에 대한 함수를 `if not`으로 따로 지정해주지 않아서 편하다.
+
+```
+user = authenticate(
+	username=username,
+	password=password,
+	)
+```
+
+: username과 password를 이용해 `authenticate()`함수를 실행시켜 저장되어 있는 세션의 딕셔너리에 있는 username과 password의 키에 대한 값을 비교를 실시한다.
+
+```
+if user in not None:
+	self.cleaned_data['user'] =user
+```
+
+: 대조한결과 요청한 user의 값들이 세션에 저장되어 있는 키에대한 값과 일치할경우, 인증된 user을 `self.cleaned_data['user']`에 할당한다. `self.cleaned_data['user']` : `user`라는 키의 이름으로 되어있는 정제된 모든 값들을 인증된 user인스턴스(안에 인증된 키에대한 값)로 대체한다. 물론 다른 정제된 모든 필드요소도 같이 들어있다.
+
+```
+else:
+	raise forms.ValidationError(
+		'login credentials not vaild'
+		)
+	return self.cleanded_data
+```
+
+: 인증에 실패할경우. `is_valid`를 통과하지 못하도록 `forms.ValidationError`를 발생시키고, `return self.cleaned_data`를 리턴한다.
+
+`member/views.py`
+
+```
+def login(request):
+	if request.method =='POST':
+		form = LoginForm(data=request.POST)
+```
+
+: `Bound form`을 생성하여 `LoginForm`안에 `data=request.POST`라는 `POST`요청을 받은 딕셔너리를 넣고, `form`이라는 인스턴스에 할당한다.
+
+```
+if form.is_valid():
+	user = form.cleaned_data['user']
+```
+
+: `LoginForm`함수에서 리턴값은 `self.cleaned_data`였다. 유효성검사할때의 `self`인스턴스는 `POST요청을한 딕셔너리`를 담은 `form`이다. `self.cleaned_data`는 `LoginForm`에서 `self.cleaned_data['user']=user`로 이미 인증된 user을 넣어놨다. 그렇기때문에 `form.cleaned_data['user']`은 `form`에서 `cleaned_data['user']`을 실행시키기에  `요청한 user`가 `인증된 user`가 되며 그걸 `user`인스턴스에 할당
+
+`django_login(request,user)`
+
+: `인증된 user`로 로그인시킨다.
+
+* `post`를 새로만들고 싶을때, 로그인상태(`login.requires=True`)가 아닐경우`(get)요청`이 올경우에 장고에서는 url을 `/?next/`라는 상대경로로 보내기에 이에 대한 처리를 해줘야한다. 
+
+![](/Users/mac/projects/images/스크린샷 2017-06-16 오후 6.36.37.png)
+
+```
+next = request.GET.get('next')
+if next:
+	return redirect(next)
+```
+: `next`키에 매치되는 값 `/?next=/`을 가져와서 `next`라는 인스턴스에 할당한다. `if next:` `next`에 일치하는 값이 왔을경우, `return redirect(next)`으로 리다이렉트 될경우  `next`키에 대한 값은 자동적으로 `member:login`이 들어간다.
+
+`conf/settings.py`
+
+`LOGIN_URL = 'member:login'`으로  설정해놓는다. 이 뜻은 로그인 url의 설정해둔 페이지로 갔을경우에, 자동적으로 `next`키에 대한 값은 `LOGIN_URL ='member:login'`이 들어간다.
 
 
+
+```
+else:
+	if request.is_authenticated:
+		return redirect('post:post_list')
+```
+
+: `GET`요청이 왔을경우, `request.is_authenticated`: 이미  로그인한 user일경우, post_list.html로 redirect
+
+```
+if request.user.is_authenticated:
+	return redirect('post:post_list')
+	form = LoginForm()
+context = {
+	'form' : form,
+}
+```
+
+: 이미 로그인한 유저가 아닌경우인데 `get`요청이 왔다면 username이나 password가 빈값으로 구성되어 있기때문이다. 그렇기 때문에 `LoginForm()`을 비워두고 `member/login.html`로 다시 렌더링해준다.
+
+`return render(request,'member/login.html',context)`
+
+* html파일 동적으로 구성하기
+
+`include/field_set.html`을 만들어서 `login.html`과 `signup.html`에 공통으로 적용할 `html`내용을 동적으로 구성한다.
+
+`include/field_set.html`
+
+
+
+```
+{% if form.non_field_errors %}
+<ul class='errors'>
+	{% for error in form.non_field_errors %}
+	<li>{{ error }}</li>
+	{% endfor %}
+</ul>
+{% endif %}
+
+```
+
+: 여기에서 쓰는 `Form`은 `class LoginForm(forms.Form):`에서 `forms.Form`을 의미한다.
+
+
+`form.non_field_errors`는 `form`자체에 대한 `error`를 의미하며, 정확히는 `Form`의 `clean()`메서드에 발생한 `ValidationError`를 의미한다. 만약 form자체에 대한 error가 있다면, `{% if form.non_field_errors %}`, `for`문을 이용하여 `error`을 꺼내서 사용한다. `<li>{{ error }}</li>` for 반복문이 끝난다면, `{% endfor %}`, if문이 끝난다면, `{% endif %}`을 의미한다.
+
+```
+{% for field in form %}
+```
+
+: `form문을 순회`하면 `form이 가진 각 필드`를 매 루프마다 제공한다.
+
+```
+{% for field in form %}
+<div class="field-wrapper">
+	{{ field.label_tag }}
+	{{ field }}
+```
+
+: `label태그(label for ="id")`을 `field`에서 불러서 실행한다. `form`클래스안에는 각 `form이 가진 각 필드를 모두 리턴`해주기에, 그 필드내에도 `label_tag`속성이 정의되어 있다. `{{ field }}`으로 `input`생성한다. 즉 html에서
+
+```
+ <laber for='username-id' name='username',type='text'>
+<input id='username-id',name='username'>
+
+<laber for='password-id' name='password',type='text'>
+<input id='password-id',name='password'>
+
+```
+이것을 
+
+```
+{{ field.label_tag }}
+{{ field }}
+```
+: {{ field }}에서 이미 `for문`을 통해 `form문`에서 `각 필드를 하나씩 꺼내주기에` `username`,`password` 2개의 필드가 생성될것이다.
+
+`scss/common.scss`
+
+```
+.field-wrapper {
+	margin-bottom : 10px;
+	
+	ul.errors {
+		font-size:11px;
+		color : red;
+		font-weight:bold;
+		padding-left:5px;
+	}
+	label {
+		font-size:11px;
+		}
+	input[type=text],input[type=password] {
+	width:100%
+	#input요소 한줄차지하기
+	box-sizing:border-box;
+	#테두리를 포함한 크기로 인식하도록 설정
+	}
+	# 
+```
+![](/Users/mac/projects/images/스크린샷 2017-06-16 오후 7.10.47.png)
+
+
+* `LoginForm`전체를 동적으로 활용하기
+
+: 지금까지는 `LoginForm`에서 `field`를 꺼내서 `html`에 그려줬다면, `LoginForm`자체를 쓸수 있도록 해주자.
+
+`member/context_processor`
+
+```
+from .forms import LoginForm
+
+def forms(request):
+	context = {
+		'login_form' : LoginForm(),
+		return context
+```
+
+: 이렇게 설정해두면, `login_form`이라는 키값에 `LoginForm`함수자체를 넣었기에 html에서 사용하려면 `context`딕셔너리의 `키`값을 이용하여 변수로 사용한다.
+
+`common/base.html`
+
+![](/Users/mac/projects/images/스크린샷 2017-06-16 오후 7.20.02.png)
+
+
+
+```
+{% if user.is_authenticated %}
+<span>{{ user }}로 로그인중</span>
+<a href="{% url 'member:logout' %}" class="btn">로그아웃</a>
+```
+
+: 이미 인증된 user면 span요소를 이용해서 {{ user }}은 `member/views.py`에서  선언한 `user = form.cleaned_data['user']`을 의미한다.
+
+```
+{% else %}
+<form action="{% url 'member:login' %}" method="POST" class="form-inline-login">
+	{% csrf_token %}
+```
+: 이미 인증된 user가 아니라면 `POST`요청을 받아 로그인 기능을 만들어 줘야 한다.
+
+* form동적구성 하기전의 코드
+
+
+```
+<label for="id-login-username">ID:</label>
+<input id="id-login-username" type='text' name="username">
+
+<label for='id-login-password">PW:</label>
+<input id='id-login-password' type='password' name='password'>
+```
+==
+
+`{{ login_form }}`으로 대체
+
+```
+<button type="submit" class="btn">로그인</button>
+```
+
+: 로그인버튼기능 구현
+
+```
+<a href="{% url 'member:login' %}" class="btn">회원가입</a>
+</form>
+{% endif %}
+```
+
+: a요소에서 `class="btn"`으로 주면 버튼이 생성된다.
+
+`<form action="{% url 'member:login' %}" method="POST" class="form-inline-login">`
+
+`scss/layout.scss`
+
+```
+form.form-inline-login {
+  font-size: 11px;
+}
+
+form.form-inline-login label {
+  margin-right: 5px;
+}
+
+form.form-inline-login input {
+  padding: 5px 8px;
+  font-size: 11px;
+  margin-right: 6px;
+  #padding은 input박스의 
+  내부여백을 의미한다.
+  
+```
+	
+* `forms/signup.py`
+
+: 회원가입을 동적으로 구성해보자
+
+```
+from django import forms
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+
+class SignupForm(forms.Form):
+	username = forms.CharField(
+		help_text='signup help text text',
+		widget=forms.TextInput)
+	
+	nickname= forms.CharField(
+		widget=forms.TextInput,
+		help_text='닉네임은 유일해야 합니다.,
+		max_length =24,
+		
+	password1 = forms.CharField(
+		widget=forms.PasswordInput
+		)
+	password2 = forms.CharField(
+		widget=forms.PasswordInput
+		)
+```
+
+: `SignupForm`을 구성하고 해당 form을 view에서 사용하도록 설정, html파일의 input요소등을 동적으로 필드를 통해 구성 , `help_text`는 오류가 발생했을 경우 전달할 메세지
+
+
+* `is_valid`유효성검사 메서드 만들기
+
+
+(1) username일치 여부
+
+
+```
+def clean_username(self):
+	username = self.cleaned_data.get('username')
+```
+
+: `clean_<fieldname>`메서드를 이용해서 `username`필드에 대한 유효성 검증을 실행 , 장고에서는 유효성검사를 할때 순서대로 실행되는 함수들이 있는데??, 3가지중 마지막으로 `clean_<fieldname>`이다. 즉 모든 함수들이 다 순서대로 실행되기에 전의 정제된 필드들을 모두 들고 올수 있다.
+
+`self.cleaned_date.get('username')`은 username을 키값으로 하는 값들을 가져온다. `get()`메서드를 사용하는 이유는 빈값이 올경우 `if not`으로 오류를 처리할필요없이 빈값은 `False`라고 선언되면 실행되지 않기에 쓴다. 빈값이 올수도 있다는 가정
+
+```
+if username and User.object.filter(username=username).exists():
+	raise forms.ValidationError(
+	'유저아이디 이미 존재'
+	)
+	return username
+	
+```
+
+`username and` : username을 전달받았을 경우라고 가정할경우, `User.objects.filter(username=username).exist()` : 이미 `User`메서드에있는 세션에 저장되어 있는 `username`키가 동일하다면, `raise forms.ValidationError`을 실행시킨다. 유효성검사를 넘기지 못하도록 오류를 발생시킨다.
+
+```
+    def clean_username(self):
+        username = self.cleaned_data.get('username')
+        if username and User.objects.filter(username=username).exists():
+            raise forms.ValidationError(
+                'Username already exist'
+            )
+        return username
+```
+: 이미존재하는 username이 아닐경우 `username`을 리턴한다.
+
+
+(2) password1,2 일치여부
+
+```
+def clean_password2(self):
+	password1 = self.cleaned_data.get('password1')
+	password2 = self.cleaned_data.get('password2')
+	
+```
+
+: `password2`필드에 `clean_<fieldname>`을 재정의한 이유는  `cleaned_data에 password1이 이미 들어와 있기 때문이다.`
+
+`password1 = self.cleaned_data.get('password1')` : password1라는 키에 대한값을 가져온다.
+
+`password2 = self.cleaned_data.get('password2')` : password2라는 키에 대한 값을 가져온다. 
+
+```
+if password1 and password2 and password1 != password2:
+```
+
+: `and`요소로 연결한 경우는 `password1`과 `password2`의 값이 온다는 가정을 한것이고, password1과 password2가 일치하지 않을경우,
+
+```
+raise forms.ValidationError(
+	'password mismatch',
+	)
+return password2
+
+```
+
+: 유효성검사를 통과하지 못하도록 , `ValidationError`을 일으킨다. `return password2`로 `password2`를 리턴한다.
+
+* 폼적으로 회원가입 기능 구성
+
+
+```
+def create_user(self):
+	username= self.cleaned_data['username']
+	password=
+	self.cleaned_data['password2']
+```
+
+: form에서 설정한 모든 필드요소에서 `username`,`password2`키에 대한 값을 가져온다.
+
+```
+return User.objects.create_user(
+	username=username,
+	password,password
+	)
+```
+
+`User.objects.create_user`안에 `form`에서 만든 모든 필드요소중username,password인스턴스를 넣어서  만든 결과를 리턴한다. 
+
+`member/views.py`
+
+```
+def signup(request):
+	if request.method == 'POST':
+	
+	form = SignupForm(data=request.Post)
+```
+
+: `POST`요청이 올 경우, `data=request.POST`를 인자로 넣어서 `SignupForm`함수를 실행한 결과를 `form`인스턴스에 할당한다.
+
+```
+if form.is_valid():
+	user = form.create_user()
+	django_login(request,user)
+	return redirect('post:post_list')
+```
+
+: `form.create_user()`를 실행한 결과는 return값이 `User.object.create_user`에서 만든 하나의 `user`이다. `django_login(request,user)`에 `user`로 넣어서 로그인처리를 한다. 로그인 처리를 한후 `post_list`로 `redirect`
+
+```
+else:
+	form = SignupForm()
+context = {
+	'form' : form,
+}
+return render(request, 'member/signup.html', context)
+
+```
+
+: else : `get`요청이 올경우(빈값이 전달될경우), `SignupForm`의 함수에 빈값을 넣어서 `form`인스턴스에 할당하고 `context`의 딕셔너리에 넣어서, 다시 로그인창으로 회원가입창으로 돌아가도록 `return render(request, 'member/signup.html',context)`로 렌더링해준다.
+
+`include/field_set.html`
+
+```
+{% for field in form %}
+<div class="field-wrapper">
+	{{ field.label_tag }}
+	{{ field }}
+	
+	{% if field.help_text %}
+	<p class='help'>{{ field.help_text }}</p>
+	
+	{% if field.errors %}
+	<ul class='errors'>
+		{% for error in field.errors %}
+		<li>{{ error }}</li>
+		{% endfor %}
+	</ul>
+	{% endif %}
+</div>
+{% endfor %}
+```
+![](/Users/mac/projects/images/스크린샷 2017-06-16 오후 10.21.02.png)
+
+: 빨간색의 오류메세지가 `member/signup.py`에서 설정한 필드속성인 `help_text`이다.
+
+실행할때는 `{% if field.help_text %}` ,`{{ field.help_text }}`,`{% if field.errors %}`. `{% for error in field.errors %}` , `{{ error }}`
+
+
+# Model 동적구성
+
+(1) Post만들기 기능
+
+`post/forms`안에 `__init__.py`와 `post.py`를 넣어준다. `__init__.py`에 `from . import post`넣어주고, `post.py`를 생성해준다. 
+
+```
+from django import forms
+from ..models import post
+```
+
+`models.py`에 있는 `Post`함수를 가져온다.
+
+```
+class PostForm(forms.ModelForm):
+	def __init__(self,*args,**kwargs):
+		super().__init__(*args, **kwargs)
+		
+```
+
+: 꼭 `ModelForm`을 사용해야 한다. `PostForm`을 생성해서 실제 Post함수의 photo필드는 `photo = models.ImageField(upload_to='post', blank=True)`처럼 `blank=True`가 지정되어 있다. `사진은 무조건 등록하게 하려면 ` 원래 `member/views.py`에는 `photo=request.FILES['files`]`로 구성되어 있다. Form에서 required=False(무조건은 아니지만)이지만, Form을 사용할때는 반드시 photo를 받도록 한다.
+
+`self.fields['photo'].required=True`
+
+: `fields`내에 `request.files`가 설정되어 있기에, `self.fields['photo']`가 가능하다. 즉 `photo`라는 딕셔너리의 키에 대한 값을 가져와서 `.required=True`로 무조건 요구하도록 설정한다. 
+
+
+```
+comment = forms.CharField(
+	required=True,
+	widget=forms.TextInput
+	)
+	
+	class Meta:
+		model = Post
+		fields = (
+			'photo',
+			'comment',
+		)
+```
+
+: `required=False`는 무조건이 아님, `required=True`는 무조건이다. `comment`필드를 생성해주고, `class Meta`속성에서 `model = Post`로 정해주고, `fields = ('photo','comment')`로 사용할 fields들만 써준다.
+
+
+`post/views.py`
+
+```
+@login_required
+def post_create(request):
+	if request.method == 'POST':
+	
+```
+
+`@login_required`는 무조건 로그인한상태로 들어가도록 하는 `데코레이터`
+
+```
+form = PostForm(data=request.POST, files=request.FILES)
+
+```
+
+: `POST`요청을 한 데이터와 파일들을 인자로 `PostForm`에 넣어서 실행한 결과를 `form`인스턴스에 할당
+
+```
+if form.is_valid():
+	post = form.save(commit=False)
+	post.author = request.user
+	post.save()
+```
+
+`post = form.save(commit=False)`는 `ModelForm`의 `save()`메서드를 사용해서 `Post`객체를 가져온다. 데이터베이스에는 저장되지 않고, 페이크로 저장하는 `save()`메서드를 실행하는것이다. 그 이유는 이미 `form`의 필드속성들중에 기입된 값들이 있기에 일단 가져오는 것이다.?? 
+`post.author = request.user` : 현재 요청한 user를 post.author에 할당하고 `post.save()`를 다시한다. ?? 
+
+`return redirect('post:post_detail',post_pk =post.pk)`
+
+```
+else:
+	form = PostForm()
+context = {
+	'form' : form,
+}
+return render(request, 'post:post_create.html',context)
+``` 
+
+: `get`요청이 왔을경우, 빈 form (`form=PostForm()`)을 넣어주고 `post_create.html`로 다시 렌더링해준다.
+
+
+`post_create.html`
+
+`{% include 'include/field_set.html' with form=form %}`
+
+: `field_set.html`을 구성할때,`form`을 변수로 사용한것을 전달한다는 의미, 즉 `form`을 변수로 사용한 `html파일 `이라는것을 보여줌
+
+
+
+
+
+	
 
 
 
