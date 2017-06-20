@@ -1772,7 +1772,7 @@ if next:
 
 `conf/settings.py`
 
-`LOGIN_URL = 'member:login'`으로  설정해놓는다. 이 뜻은 로그인 url의 설정해둔 페이지로 갔을경우에, 자동적으로 `next`키에 대한 값은 `LOGIN_URL ='member:login'`이 들어간다.
+`LOGIN_URL = 'member:login'`으로  설정해놓는다. 이 뜻은 `로그인 url`의 설정해둔 페이지로 갔을경우에, 자동적으로 `next`키에 대한 값은 `LOGIN_URL ='member:login'`이 들어간다.
 
 
 
@@ -2167,11 +2167,11 @@ class PostForm(forms.ModelForm):
 		
 ```
 
-: 꼭 `ModelForm`을 사용해야 한다. `PostForm`을 생성해서 실제 Post함수의 photo필드는 `photo = models.ImageField(upload_to='post', blank=True)`처럼 `blank=True`가 지정되어 있다. `사진은 무조건 등록하게 하려면 ` 원래 `member/views.py`에는 `photo=request.FILES['files`]`로 구성되어 있다. Form에서 required=False(무조건은 아니지만)이지만, Form을 사용할때는 반드시 photo를 받도록 한다.
+: 꼭 `ModelForm`을 사용해야 한다. `PostForm`을 생성해서 실제 Post함수의 photo필드는 `photo = models.ImageField(upload_to='post', blank=True)`처럼 `blank=True`가 지정되어 있다. 원래 `member/views.py`에는 `photo=request.FILES['files']`로 구성되어 있다.`forms/post.py`에서  동적으로 파일을 가져오려면, 
 
 `self.fields['photo'].required=True`
 
-: `fields`내에 `request.files`가 설정되어 있기에, `self.fields['photo']`가 가능하다. 즉 `photo`라는 딕셔너리의 키에 대한 값을 가져와서 `.required=True`로 무조건 요구하도록 설정한다. 
+: `fields`내에 `request.FILES`가 설정되어 있기에, `self.fields['photo']`가 가능하다. 즉 `photo`라는 딕셔너리의 키에 대한 값을 가져와서 `.required=True`로 무조건 요구하도록 설정한다. 
 
 
 ```
@@ -2188,7 +2188,7 @@ comment = forms.CharField(
 		)
 ```
 
-: `required=False`는 무조건이 아님, `required=True`는 무조건이다. `comment`필드를 생성해주고, `class Meta`속성에서 `model = Post`로 정해주고, `fields = ('photo','comment')`로 사용할 fields들만 써준다.
+: `required=False`는 무조건이 아님, `required=True`는 무조건이다. `comment`필드를 생성해주고, `class Meta`속성에서 `model = Post`로 정해주고, `fields = ('photo','comment')`로 `사용할 fields`들만 써준다.
 
 
 `post/views.py`
@@ -2216,8 +2216,53 @@ if form.is_valid():
 	post.save()
 ```
 
-`post = form.save(commit=False)`는 `ModelForm`의 `save()`메서드를 사용해서 `Post`객체를 가져온다. 데이터베이스에는 저장되지 않고, 페이크로 저장하는 `save()`메서드를 실행하는것이다. 그 이유는 이미 `form`의 필드속성들중에 기입된 값들이 있기에 일단 가져오는 것이다.?? 
-`post.author = request.user` : 현재 요청한 user를 post.author에 할당하고 `post.save()`를 다시한다. ?? 
+`post = form.save(commit=False)`는 `post/views.py`에서 `post_create`함수의 속성들은 `author`,`photo`,`comment`3가지 인데, 이미 `ModelForm`에서 `comment`와 `photo`필드를 생성해 놨기에, 일단 `POST`요청을 한 `photo`와 `comment`는 `ModelForm`의 `save()`메서드를 사용해서 `Post`객체를 가져온다. **데이터베이스에는 저장되지 않고**, 페이크로 저장하는 `save()`메서드를 실행하는것이다. 즉, 기존에 만들어진 `post`객체에 `오버라이드` 하기위해서, 저장은 하지않고 일단 객체만 가져오는것이다. 
+`post.author = request.user` : 현재 요청한(`request.user`)를 `post.author`에 할당하고`post.save()`를 다시한다. 
+
+* `save()`메서드
+
+: `save()`메서드는 `commit=?` 키워드인자를 선택적으로 갖는다. 기본값은 `commit=True`이다.
+
+(1) `save(commit=False)`
+
+: 데이터베이스에 저장되지 않은 객체를 반환한다. `ManyToMany`관계에서, `commit=False`인 경우, 장고는 즉시 `MTM`관계에서 폼데이터를 저장할수 없다. 왜냐면 데이터베이스에 인스턴스가 존재하지 않기 때문이다. 이 문제를 해결하기 위해서, 장고는 `save_m2m()`을 더한다.
+
+```
+f = AuthorForm(request.POST)
+#  POST data의 폼 인스턴스를 만든다.
+
+new_author = f.save(commit=False)
+
+# new author인스턴스를 저장하지 않고, 인스턴스만 만든다.
+
+new_author.some_field ='some_value`
+# new_author의 속성을 호출하여, 값을 할당한다. 수정
+
+new_author.save()
+# 새로운 인스턴스를 저장한다.
+
+f.save_m2m()
+# 폼에있는 mtm 데이터를 지금 저장한다.
+
+```
+`commit=False`로 저장할때만, `save_m2m()`을 호출할수 있다. 
+
+* 추가적인 method호출없이 `save()`메서드를 사용할 경우,
+
+```
+a = Author()
+f = AuthorForm(request.POST, instance =a)
+
+# POST data를 받는 form instance를 만든다.
+
+new_author = f.save()
+# new author인스턴스를 저장하고 만든다.
+
+```
+
+: `ModelForm`은 `save()`와 `save_m2m`을 사용하는것과 똑같이 작용한다.  `a=Author()`은 `commit=False`로 `save()`메서드를 실행한것과 동일하다.
+
+
 
 `return redirect('post:post_detail',post_pk =post.pk)`
 
@@ -2230,7 +2275,7 @@ context = {
 return render(request, 'post:post_create.html',context)
 ``` 
 
-: `get`요청이 왔을경우, 빈 form (`form=PostForm()`)을 넣어주고 `post_create.html`로 다시 렌더링해준다.
+: `GET`요청이 왔을경우, 빈 form (`form=PostForm()`)을 넣어주고 `post_create.html`로 다시 렌더링해준다.
 
 
 `post_create.html`
@@ -2239,11 +2284,639 @@ return render(request, 'post:post_create.html',context)
 
 : `field_set.html`을 구성할때,`form`을 변수로 사용한것을 전달한다는 의미, 즉 `form`을 변수로 사용한 `html파일 `이라는것을 보여줌
 
+* `post`만들기
 
+`post/views.py`
 
+(1) `PostForm을 쓰지 않는 경우`
 
+```
+@login_required
+def post_create(request):
+	if request.method == 'POST':
+	user = User.objects.first()
+	post = Post.objects.create(
+		author=user,
+		photo =request.FILES['files'],
+		)
+	comment_string = request.POST.get('comment','')
+	if comment_string:
+		post.comment_set.create(
+			author=user,
+			content=comment_string,
+			)
+```
 
+(2) `PostForm을 쓰는 경우`
+
+```
+@login_required
+def post_create(request):
+	if request.method == 'POST':
+	form = PostForm(data=request.POST,files=request.FILES)
+	if form.is_valid():
+		post = form.save(commit=False)
+		post.author = request.user
+		post.save()
+				
+```
+
+: `ModelForm`의 `save()`메서드를 사용해서 `Post`객체를 가져옴. 현재 `Modelform`에 형성된 필드들은 `comment`와 `photo`이다. `photo`의 경우, `ModelForm`안에 `self.fields['photo'].required = True`로 설정해놨다. `comment`와 `author`만 처리하면 된다.
+
+```
+comment_string = form.cleaned_data['comment']
+if comment_string:
+	post.comment_set.create(
+		content=comment_string,
+		author = post.author
+		)
+```
+
+: `comment_string`에 `form`에서 정제된 데이터의 속성(`cleaned_data`)에서 `comment`를 키로 하는 값을 가져온다. `form.cleaned_data['comment']` `if comment_string` : 현재 존재하는 문자열이 있을경우 `post.comment_set.create` 역참조를 이용해서 생성한다. `content=comment_string`,`author=post.author`를 넣어준다.
+
+`return redirect('post:post_detail',post_pk=post.pk)`
+
+* `ModelForm`에서 한번에 처리하기
+
+: `ModelForm`에서 처리할 수 없는 것은 어떤값이 올지 모르는 `author`이다. `author=request.user`만 외부에서 `request`요청으로 받고, 나머지는 `ModelForm`에서 처리해준다.
+
+```
+def post_create(request):
+	if request.method == 'POST':
+	form = PostForm(data=request.POST, files=request.FILES)
+	if form.is_valid():
+		post = form.save(author=request.user)
+		return redirect('post:post_detail',post_pk=post.pk)
+
+	else:
+		form = PostForm()
+		context = {
+			'form' : form,
+			}
+	return render(request, 'post/post_create.html',context)
+```
+
+`/post/forms/post.py`
+
+```
+from django import forms
+from django.contrib.auth import get_user_model
+
+from ..models import Post,Comment
+
+User = get_user_model()
+
+class PostForm(forms.ModelForm):
+	def __init__(self,*args,**kwargs):
+	super().__init__(*args,**kwargs)
+	self.fields['photo'].required = True
+
+	comment = forms.CharField(
+		required=False,
+		widget=forms.TextInput)
 	
+	clsss Meta:
+		model = Post
+		fields = (
+			'photo',
+			'comment',
+			)
+```
+
+: `class Meta`에서 `사용할 모델메서드`와 `fields`를 설정할수 있다. `post/models.py`에 있는 `Post`모델을 사용하고, `photo`와 `comment`필드만 사용하겠다.
+
+* `save()`메서드를 사용한다.
+
+`def save(self,**kwargs):`
+
+: `self`는 여기서 `boundform`이다. 
+`form = PostForm(data=request.POST,files=request.FILES)`
+
+`commit = kwargs.get('commit',True)`
+
+: 전달된 키워드 인수중 `commit`키 값을 가져옴 , `get()`메서드의 경우, 매치되는`comment`키가 없을경우, `commit=True`기본값을 가진다.
+
+`author=kwargs.pop('author',None)`
+
+: 전달된 키워드인수중 `author`키 값을 가져오고, 기존 키워드인자 딕셔너리에서 제외한다. 그 이유는 `save()`메서드는 `한개의 키워드인자`밖에 못받기 때문이다.
+
+`self.instance.author = author`
+
+: `ModelForm`안에서 `instance`가 있는경우나 없는경우에 항상 `self.instance`를 반환한다.
+
+```
+class BaseModelForm(BaseForm):
+	opts=self._meta
+	
+	
+	if opts.model is None:
+		raise ValueError('modelform has no model class)
+		
+	if instance is None:
+		self.instance = opts.model()
+		# class Meta에 있는 Post메서드에 선언한 필드값 photo,comment를 가지는 post객체를 만든다.
+		
+	else:
+		self.instance = instance
+	# instance가 이미 존재할경우도 self.instance에 할당한다.
+```
+
+: 즉 `instance`가 이미 존재하거나 없는경우 모두 `self.instance`를 반환하며, `self.instance`는 `photo`와 `comment`를 속성으로 갖는 `Post`객체이다. 즉 `post = Post.objects.create(photo=request.FILES['photo'],comment=request.POST`는 `self.instance`에 들어있다. `author`값을 넣어야 한다.
+
+`self.instance.author = author`
+
+: 처음에는 `instance`가 생성되지 않으므로, `self.instance`가 반환되었을 것이고, 자동으로 `class Meta`에서 설정한 필드값들로 만든 `post`객체를 가지고 있고, `post객체.author = author`이고 `author`은 `request.user`를 받은 `author`를 `post.author`하여 `post객체에 넣는것`이다. 일단 `Post`를 만들기 위해 필요한 요소들을 다 넣어야
+
+
+`instance=super().save(*kwargs)`
+
+: `super().save()`가 실행되는
+
+
+`ModelForm`에서 
+`commit =True`인경우 `DB에 저장`하고(`post.objects.create(인자)`) `commit=False`일 경우 `p=post()`와 같기 때문에, 인스턴스만 남겨둔다.
+
+`commit=True`이고, `instance`가 `pk`와 `author`를 정상적으로 가진경우에만 `Comment`생성 로직을 실행한다. pk를 왜가지는가??
+
+`comment_string = self.cleaned_data['comment']
+if commit`
+
+```
+if commit and comment_string:
+	instance.comment_set.create(
+	author=instance.author
+	content=comment_string)
+
+return instance
+```
+
+: `ModelForm`의 `save()`에서 반환해야 하는 `model`의 `instance`리턴한다.
+
+
+* `post/models/`에 `my_comment`필드 추가 및 `PostForm`에서 해당 필드 사용하도록 수정
+
+```
+class Post(models.Model):
+	my_comment = models.OneToOneField(
+	'Comment',
+	blank=True,
+	null=True,
+	related_name='+'
+	)
+```
+
+`post/forms/post.py`
+
+```
+from django import forms
+from ..models import Post,Comment
+
+class PostForm(forms.ModelForm):
+	comment = forms.CharField(
+		required=False,
+		widget=forms.TextInput)
+		
+		class Meta:
+			model = Post
+			fields = (
+				'photo',
+				'comment',
+				)
+		def save(self,**kwargs):
+		# save메서드 커스터마이징
+		commit = kwargs.get('commit',True)
+		author = kwargs.pop('author',None)
+		
+		self.instance.author = author
+		instance = super().save(**kwargs)
+		
+		comment_string = self.cleaned_data['comment']
+		if commit and comment_string:
+```
+
+: `commit=True`이고, `comment_string`이 있을경우,
+
+```
+	if instance.my_comment:
+		instance.my_comment.content=comment_string
+		instance.my_comment.save()
+```
+
+: `instance`는 `DB`에 모든 키워드 인자를 저장한 인스턴스고, 거기다 오버라이드 해준다. `instance.my_comment`는 `post객체.my_comment`가 있다면, `instance.my_comment.content` = `comment_string`을 할당하고, `instance.my_comment.save()`를 한다.
+
+```
+else:
+	instance.my_comment = Comment.objects.create(
+		post=instance,
+		author=author,
+		content=comment_string
+		)
+	instance.save()
+```
+
+: `my_comment`가 없을경우, 새로 `comment`를 만든다. `Comment.objects.create(
+	post=instance,
+	author=author,
+	content=comment_string)
+instance.save()
+`
+
+`return instance`
+
+: `ModelForm`의 `save()`에서 반환해야하는 `model`의 `instance`리턴
+
+* `post_modify` 동적으로 구현
+
+`post/urls.py`
+
+`url(r'^(?P<post_pk>/modify/$',views.post_modify,name='post_modify'),`
+
+
+`post/forms/post.py`
+
+```
+from django import forms
+from ..models import Post,Comment
+
+class PostForm(forms.ModelForm):
+	def __init__(self,*args,**kwargs):
+	super().__init__(*args,**kwargs)
+	self.fields['photo'].required = True
+```
+
+```
+if self.instance.my_comment:
+	self.fields['comment'].initial = self.instance.my_comment.content
+```
+
+: `self.instance`는 `instance`가 없을때 생기는 `post`객체이고, `if.self.instance.my_comment:` `my_comment`(내가 쓴 코멘트)가 있을경우, `self.fields['comment'].initial`처음 `comment`의 키에 대한 값은 `self.instance.my_comment.content`의 값을 넣는다.
+
+* `initial`
+
+`Field.initial` 는 `unbound Form`안에 필드를 렌더링할때, 처음값을 구체화 하기위해 사용한다. 즉 `self.fields['comment'].initial = self.instance.my_comment.content` 처음 빈값에 `comment`라는 딕셔너리의 키에 대한 값은 `self.instance.my_comment.content`를 넣어놓겠다라는 의미이다.
+
+```
+comment = forms.CharField(
+	required=False,
+	
+class Meta:
+	model = Post
+	fields = (
+		'photo',
+		'comment',
+		)
+def save(self, **kwargs):
+	commit = kwargs.get('commit',True)
+	author = kwargs.pop('author,None)
+	
+	self.instance.author = author
+	instance = super().save(**kwargs)
+```
+
+```
+comment_string = self.cleaned_data['comment']
+```
+
+: 정제된 데이터 `cleaned_data`속성에서 `comment`를 키로 갖는 딕셔너리 값을 가져와서 `comment_string`에 할당한다.
+
+
+`if commit and comment_string:` : `my_comment`가 이미 있는 경우(update의 경우)
+
+```
+	if instance.my_comment:
+		instance.my_comment.content = comment_string
+		instance.my_comment.save()
+```
+
+`my_comment`가 없는 경우, `Comment`객체를 생성해서 `my_comment` `OTO field`에 할당한다.
+
+```
+	else:
+		instance.my_comment = Comment.objects.create(
+			post=instance,
+			author=author,
+			content=comment_string,
+			)
+		instance.save()
+```
+
+: `OTO`필드의 저장을 위해 `Post`(`instance`)의 `save()`를 호출한다. 여기서 instance는 `post`객체이며, `post=instance`처럼 `post`객체이기에 `instance`를 `post`에 넣는다.
+
+`return instance`
+
+: `ModelForm`의 `save()`에서 반환하는 `model`의 `instance`를 리턴한다.
+
+
+
+
+`post/views.py`
+
+```
+def post_modify(request,post_pk):
+	post = Post.objects.get(pk=post_pk)
+```
+
+: 현재 수정하고자 하는 `Post`의 객체를 `get(pk=post_pk)`를 통해 가져온다.
+
+```
+if request.method == 'POST':
+	form = PostForm(data=request.POST,files=request.FIELS, instance=post)
+```
+
+: `instance=post`는 `instance= super().save(**kwargs)`이다. `post`객체(`post=Post.objects.get(pk=post_pk)`를 넣고, `super()`메서드의 `save`메서드를 실행한다.
+
+```
+if request.method == 'POST':
+	form = PostForm(data=request.POST,files=request.FILES,instance=post)
+```
+: `boundform`을 생성해서, 요청받은 `request.POST`,`files=request.FILES,instance=post`를 넣는다. 여기서 `post`는 `post=Post.objects.get(pk=post_pk)`이다.
+
+```
+	form.save()
+	return redircet('post:post_detail',post_pk=post.pk)
+	
+else:
+	form = PostForm(instance=post)
+context = {
+	'form',form,
+	}
+	return render(request,'post/post_create.html',context)
+```
+
+: `get`요청으로 올경우, 수정한것이 없거나, 빈값으로 올수도 있다는 뜻이므로, `post=Post.objects.get(pk=post_pk)`를 그대로 넣어서, `post_create.html`로 렌더링해준다.
+
+
+
+* `post_modify`에서 `instance.author`값을 채울때 발생하던 오류수정, 
+
+: 이유는 `self.instance.author = author`때문이다. `post_create`에서는 `author`값이 `request`요청에 무조건 전달되어야 생성되기에, `self.instance.author`에 `author`을 할당해주었지만, 수정할경우, `author`가 없을수도 있고`(author=None)`, `author=User`인경우도 고려해줘야한다,
+
+
+```
+from django import forms
+from django.contrib.auth import get_user_model
+from django.contrib.auth.models import AnonymousUser
+
+from .models import Post,Comment,
+
+User = get_user_model()
+```
+
+: `User`객체를 가져온다. `author=User`가 있을수도 있기 때문이다.
+
+```
+class PostForm(forms.ModelForm):
+	super().__init__(*args,**kwargs)
+	self.fields['photo'].required = True,
+	
+	if self.instance.my_comment:
+		self.field['comment'].initial = self.instance.my_comment.content
+		
+comment = forms.CharField(
+	required=False,
+	widget=forms.TextInput
+	)
+
+class Meta:
+	model = Post
+	fields = (
+		'photo',
+		'comment',
+		)
+def save(self,**kwargs):
+	commit = kwargs.get('commit',True)
+	author = kwargs.pop('author',None)
+	
+```
+* 수정한 부분
+
+`self.instance.author=author`을 바로 쓰지 않고, `self.instance.pk`가 존재하지 않거나(새로 생성하거나), `author`가 `User인스턴스`일경우, 두가지 중 하나이면 `self.instance.author`에 `author`값으로 할당
+
+```
+if not self.instance.pk or ininstance(author,User):
+	self.instance.author = author
+	instance = super().save(**kwargs)
+```
+
+`isinstance(author,User)`에서 `isinstance`는 `author`타입과 `User`타입과 일치하면 `True`, 일치하지 않으면 `False`를 반환한다.
+
+`if not False`는 `True`이기 때문에, `self.instnace.pk`가 없을경우 `False` or `isinstane(author,User)`타입이 일치하지 않을때, `False`이기에 `True`를 반환한다. ????????
+
+# post_modify,post_create form최종본
+
+
+```
+def save(self,**kwargs):
+
+	commit = kwargs.get('commit',True)
+	author = kwargs.get('author',None)
+	
+	if not self.instance.pk or isinstance(author,User)
+		self.instance = author
+		
+	instance = super().save(**kwargs)
+	
+	comment_string = self.cleanded_data['comment']
+	if commit and comment_string
+		if instance.mycomment:
+			instance.mycomment.content = comment_string
+			instance.my_comment.save()
+		else:
+			instance.my_comment = Comment.object.create(
+			post=instance,
+			author=instance.author
+			content=comment_string,
+		)
+	instance.save()
+return instance
+
+```
+
+`post/views.py`
+
+```
+@login_required
+def post_modify(request,post_pk):
+	post = Post.objects.get(pk=post_pk)
+	
+	if request.method == 'POST':
+		form = PostForm(data=request.POST,files=request.FILES,instance=post)
+		form.save()
+		return redirect('post:post_detail',post_pk=post.pk)
+	else:
+		form=PostForm(instance=post)
+		context = {
+			'form' : form,
+		return render(request,'post/post_modify.html',context)
+```
+
+* `post_modify.html`수정
+
+`templates/post/post.modify.html`
+
+```
+{% extends 'common/base.html` %}
+
+{% block content %}
+<div class="content">
+	<form action="" method='POST' enctype="multipart/form-data">
+		{% crsf_token %}
+		<img src="{{ form.instance.photo.url }}
+		{% include 'include/field_set.html' with form=form %}
+		<button type="submit" class="btn">등록</button>
+	</form>
+</div>
+{% endblock %}
+
+```
+
+
+
+
+* `/`로 접속시 `post_list`로 이동
+
+(1)  
+
+`config/views.py`
+
+```
+from django.shortcuts import redirect
+
+def indet(request):
+	return redirect('post:post_list')
+```
+
+`config/urls.py`
+
+```
+from . import views
+
+urlpattenrs = [
+	url(r'^$', views.index, name='index')
+	
+```
+
+(2)
+
+`config/urls.py`
+
+```
+from django.views.generic import RedirectView
+
+url('r^$', RedirectView.as_view(pattern_name='post:post_list')),
+```
+
+* `post_owner_decorator`구현 및 `post_modify`에서 사용
+
+: 포스트를 쓴 author만이 수정할 수 있도록. 데코레이터를 생성
+
+`django_app/post/decorators.py`
+
+```
+from django.core.exceptions import PermisstionDenied
+
+from post.models import Post
+
+def post_owner(f):
+	def wrap(request,*args,**kwargs):
+		post = Post.objects.get(pk=kwargs['post_pk'])
+		if request.user == post.author:
+			return f(request, *args, **kwargs)
+		raise PermissionDenied
+	return wrap
+```
+
+: 일단 구체적인 `post`를 구별하기위해 `(pk=kwargs['post_pk'])`에서 `kwargs` 키워드인자모음에서 `post_pk`키에 해당하는 값을 가져와서 pk에 할당하고, `현재 요청한 user = request.user`가 `post.author` : `포스트를 쓴 author`일 경우, return `f(request, *args, **kwargs)` 함수를 리턴하고, 아닐경우 `PermissionDednied`를 발생시킨다.
+`return = wrap`을 함수를 리턴하면 `wrap`함수내에서 `return f`를 리턴 ????
+
+
+* `post_html`에서 수정,삭제 버튼은 작성자만 보이도록 함
+
+`include/post.html`
+
+```
+<div class="btn-rignt">
+	{% if user == post.user %}
+	<a href="{% url 'post:post_modify' post_pk=post.pk %}" class="btn">수정하기<a/>
+	<a href="" class="btn">삭제하기</a>
+	{% endif %}
+</div>
+
+```
+
+`{% if user == post.user %}`을 추가하면, 현재 `user`객체가 `post.user`즉, post를 쓴 user와 같다면,이라는 조건을 추가한다.
+
+* `post_delete`구현
+
+`post/urls.py`
+
+```
+urlpattern = [
+	url('r^(?P<post_pk>\d+)/delete/$', views.post_delete, name='post_delete'),
+	
+```
+
+`post/views.py`
+
+```
+@post_ownder
+@login_required
+def post_delete(request,post_pk)
+	pass
+	if request.method == 'POST':
+		post= get_object_or_404(Post,pk=post_pk)
+		post.delete()
+		return redirect('post:post_list')
+		
+```
+	
+* `get_object_or_404()`
+
+```
+from django.shortcuts import get_object_or_404
+
+def post_delete(request,post_pk):
+	post = get_object_or_404(Post,pk=post_pk)
+
+```
+==
+```
+
+def post_delete(request,post_pk):
+	try:
+		post = Post.objects.get(pk=post_pk)
+	except Post.DoesNotExist as e:
+	(1) return HttpResponse('post not found,detail : '{}'.format(e))
+	(2) return redirect('post:post_list')
+	(3) return HttpResponseNotFound('post not fonund')
+			
+			
+			
+```
+		
+: 이경우는  `/post/124214124`와 같이 아무숫자나 올수 있기때문에 404 에러가 발생한다. 
+
+`templates/include/post.html`
+
+```
+<div class="btn-right">
+{% if user == post.user %}
+<a href ="{% url 'post:post_modify' post_pk=post.pk %}" class="btn">수정하기<a/>
+
+
+<form action="{% url 'post:post_delete' post_pk=post.pk %}" method='POST' class="form-inline">
+	{% csrf_token %}
+	<button type="submit class="btn">삭제하기</button>
+</form>
+<% endif %}
+</div>
+</div>
+
+```
+
+: `삭제하기 기능`을 구현하기 위해서는 , 삭제할 `post_pk`가 필요하기에 `POST`요청을 받아야한다.
+
+
 
 
 
