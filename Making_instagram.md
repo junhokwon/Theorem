@@ -2216,7 +2216,7 @@ if form.is_valid():
 	post.save()
 ```
 
-`post = form.save(commit=False)`는 `post/views.py`에서 `post_create`함수의 속성들은 `author`,`photo`,`comment`3가지 인데, 이미 `ModelForm`에서 `comment`와 `photo`필드를 생성해 놨기에, 일단 `POST`요청을 한 `photo`와 `comment`는 `ModelForm`의 `save()`메서드를 사용해서 `Post`객체를 가져온다. **데이터베이스에는 저장되지 않고**, 페이크로 저장하는 `save()`메서드를 실행하는것이다. 즉, 기존에 만들어진 `post`객체에 `오버라이드` 하기위해서, 저장은 하지않고 일단 객체만 가져오는것이다. 
+`post = form.save(commit=False)`는 `post/views.py`에서 `post_create`함수의 속성들은 `author`,`photo`,`comment`3가지 인데, 이미 `ModelForm`에서 `comment`와 `photo`필드를 생성해 놨기에, 일단 `POST`요청을 한 `photo`와 `comment`는 `ModelForm`의 `save()`메서드를 사용해서 `Post`객체를 가져온다. **데이터베이스에는 저장되지 않고**, 페이크로 저장하는 `save()`메서드를 실행하는것이다. 즉, 기존에 만들어진 `post`객체에 `오버라이드` 하기위해서, 저장은 하지않고, 일단 객체만 가져오는것이다. 
 `post.author = request.user` : 현재 요청한(`request.user`)를 `post.author`에 할당하고`post.save()`를 다시한다. 
 
 * `save()`메서드
@@ -2607,8 +2607,6 @@ comment_string = self.cleaned_data['comment']
 : `ModelForm`의 `save()`에서 반환하는 `model`의 `instance`를 리턴한다.
 
 
-
-
 `post/views.py`
 
 ```
@@ -2698,9 +2696,7 @@ if not self.instance.pk or ininstance(author,User):
 	instance = super().save(**kwargs)
 ```
 
-`isinstance(author,User)`에서 `isinstance`는 `author`타입과 `User`타입과 일치하면 `True`, 일치하지 않으면 `False`를 반환한다.
-
-`if not False`는 `True`이기 때문에, `self.instnace.pk`가 없을경우 `False` or `isinstane(author,User)`타입이 일치하지 않을때, `False`이기에 `True`를 반환한다. ????????
+: 위의 코드는 `post_create`할때나 `post_modify`할때 모든것을 고려해주는 경우로, `if not self.instance.pk`는 `post_create`를할때 `author`값을 안적어서 요청할수도 있으니, 존재하지않을경우, `author`을 `self.instance.author`에 할당해주고, 또는 `post_modify`할떄, `isinstance`로 `author`와 `User`의 타입을 비교해서 일치할경우, 내가 쓴 글에 대한 수정은 나만이 할수 있으므로, `isinstace(author,User)` 해서 `author=User`과 같다면, 이 `author`를 `self.instance.author`에 할당한다.
 
 # post_modify,post_create form최종본
 
@@ -2827,7 +2823,7 @@ def post_owner(f):
 ```
 
 : 일단 구체적인 `post`를 구별하기위해 `(pk=kwargs['post_pk'])`에서 `kwargs` 키워드인자모음에서 `post_pk`키에 해당하는 값을 가져와서 pk에 할당하고, `현재 요청한 user = request.user`가 `post.author` : `포스트를 쓴 author`일 경우, return `f(request, *args, **kwargs)` 함수를 리턴하고, 아닐경우 `PermissionDednied`를 발생시킨다.
-`return = wrap`을 함수를 리턴하면 `wrap`함수내에서 `return f`를 리턴 ????
+`return = wrap`을 함수를 리턴하면 `return f(request,*args,**kwargs)`여기에서 `post_modify`나 `post_create`가 들어가서 `return wrap`으로 `wrap`함수로 리턴되고, 그값이 `wrap`함수를 다시돌아가서 실행
 
 
 * `post_html`에서 수정,삭제 버튼은 작성자만 보이도록 함
@@ -2851,6 +2847,8 @@ def post_owner(f):
 `post/urls.py`
 
 ```
+ex) post/3/delete
+
 urlpattern = [
 	url('r^(?P<post_pk>\d+)/delete/$', views.post_delete, name='post_delete'),
 	
@@ -2861,12 +2859,18 @@ urlpattern = [
 ```
 @post_ownder
 @login_required
+
+
 def post_delete(request,post_pk)
-	pass
+	post = get_objects_or_404(Post,pk=post_pk)
 	if request.method == 'POST':
-		post= get_object_or_404(Post,pk=post_pk)
 		post.delete()
 		return redirect('post:post_list')
+	else:
+		context = {
+			'post':post,
+			}
+		return render(request,'post/post_delete.html',context)
 		
 ```
 	
@@ -2880,18 +2884,16 @@ def post_delete(request,post_pk):
 
 ```
 ==
-```
 
+```
 def post_delete(request,post_pk):
 	try:
 		post = Post.objects.get(pk=post_pk)
 	except Post.DoesNotExist as e:
 	(1) return HttpResponse('post not found,detail : '{}'.format(e))
 	(2) return redirect('post:post_list')
-	(3) return HttpResponseNotFound('post not fonund')
-			
-			
-			
+	(3) return HttpResponseNotFound('post not found')
+					
 ```
 		
 : 이경우는  `/post/124214124`와 같이 아무숫자나 올수 있기때문에 404 에러가 발생한다. 
@@ -2908,7 +2910,7 @@ def post_delete(request,post_pk):
 	{% csrf_token %}
 	<button type="submit class="btn">삭제하기</button>
 </form>
-<% endif %}
+{% endif %}
 </div>
 </div>
 
@@ -2916,6 +2918,764 @@ def post_delete(request,post_pk):
 
 : `삭제하기 기능`을 구현하기 위해서는 , 삭제할 `post_pk`가 필요하기에 `POST`요청을 받아야한다.
 
+* `post_delete` 확인페이지 구현
+
+`include/post.html`
+
+```
+<div class="btn-right">
+	{% if user == post.author %}
+	<a href="{% url 'post:post_modify' post_pk=post.pk %}" class="btn">수정하기</a>
+	<form action="{% url 'post:post_delete' post_pk=post.pk %}" method="POST" class="form-inline">
+          {% csrf_token %}
+          <button type="submit" class="btn">삭제하기</button>
+        </form>
+        {% endif %}
+       </div>
+     </div>
+```
+
+
+`templates/post/post_delete.html`
+
+```
+{% extends 'common/base.html' %}
+
+{% block content %}
+<div class="content">
+	<img src="{{ post.photo.url }}" alt="" width="200">
+	<p>Post (pk: {{ post.pk }}를 삭제하시겠습니까?</p>
+	<form action="" method="POST" class="form-inline">
+	{% csrf_token %}
+	<button type="submit" class="btn">삭제</button>
+	</form>
+	<a href="{% url 'post:post_detail' post_pk=post.pk %}" class="btn">돌아가기</a>
+</div>
+{% endblock %}
+
+```
+
+: `post_delete`페이지는 `get`요청할때, 즉 어떤 페이지를 보여주는 용도로 사용할때, 사용한다. 삭제할때의 페이지를 보여줄용도로 `get`요청을 받아서 `post_delete`렌더링해준다. `get`요청은 `post/3/delete`와 같이, 직접 url주소를 쳐서 들어가는경우,
+
+![](/Users/mac/projects/images/스크린샷 2017-06-20 오후 1.45.24.png)
+
+
+
+
+* `comment_create`를 만들기(`CommentForm`)을 만들기
+
+
+
+`forms/__init__.py`
+
+```
+from .post import PostForm
+from .comment import CommentForm
+
+```
+
+`post/forms/comment.py`
+
+```
+from django import forms
+from ..models import Comment
+
+class CommentForm(forms.ModelForm):
+	class Meta:
+		model=Comment
+		fields = [
+			'content',
+			]
+			widget = {
+				'content' : forms.TextInput(
+				attrs={
+					'class':'input-comment',
+					'placeholder': '댓글 입력',
+					}
+				)
+			}
+```
+
+: `<input type='text' name='content' class="input-comment'>`를 형성해주는것과 같으며, `comment`를 만들기위한 요소(어떤`post`,`author`,`comment`3가지중) `comment`만 request요청을 받은것을 `models.py`의 `Comment`객체로 만든다. 즉, `comment = Comment(comment.content="")`와 비슷한 의미이다. `ModelForm`에서 동적으로 `html`요소를 생성하기 위해서는 `class Meta`안에다 선언해줘야 한다.
+
+`post/urls.py`
+
+```
+ex) post/3/comment/create
+urlpatterns = [
+	url(r'^(?P<post_pk>\d+)/comment/create/$',views.comment_create, name='comment_create'
+```
+
+* `views.py`에 있는 내용을 패키지를 만들어 `post`와 `comment`로 구분한다.
+
+![](/Users/mac/projects/images/스크린샷 2017-06-20 오후 1.53.31.png)
+
+`views/__init__.py`
+
+```
+from .post import *
+from .comment import *
+```
+
+`views/comment.py`
+
+```
+__all__ = (
+    'comment_create',
+    'comment_modify',
+    'comment_delete',
+)
+```
+와 같이 `__all__`에 `메서드들`을 튜플로모아서 할당하고 , `import *` 모두 `import`해준다.
+
+* `clean_<fieldname>`메서드 사용
+
+
+```
+from django import forms
+from ..models import Comment
+
+class CommentForm(forms.ModelForm):
+	class Meta:
+		model = Comment
+		fields = [
+			'content',
+			]
+			widgets = {
+				'content' : forms.TextInput(
+				attrs={
+					'class' : 'input-comment',
+					'placeholder' : '댓글 입력',
+					}
+				)
+			}
+```
+
++
+
+```
+def clean_content(self):
+	content = self.cleaned_data['content']
+	if len(content) < 3:
+		raise ValidationError(
+			'댓글은 최소 3자이상'
+			)
+		return content
+```
+
+`clean_<fieldname>`메서드를 사용해서,`Comment`의 `content필드`에 대한 유효성 검증을 실행한다. 
+
+`post/views/comment.py`
+
+```
+from ..forms import CommentForm
+from ..models import Post
+
+__all__ = (
+	'comment_create',
+	'comment_modify',
+	'comment_delete',
+)
+
+@require_POST
+# POST요청일경우만 쓴다.(내부함수)
+@login_required
+def comment_create(request,post_pk)
+	post = get_objects_or_404(Post, pk=post_pk)
+	# post객체를 하나 들고온다. 
+	
+	form = CommentForm(request.POST)
+	if form.is_valid():
+		form.save()
+		return redirect('post:post_detail', post_pk=post.pk)
+```
+
+: 일단 미완성인 `comment_create`메서드를 만든다. 일단 `comment`를 만드려면, 어떤 `post`에  `comment`를 만드는가가 중요하므로, 일단  `post=get_objects_or_404(Post,pk=post_pk)`를 가져온다. `comment`를 만들기 위해서는 `post`,`content`,`author`이 필요하다.
+
+* `post_list`에서 각 `post`에 댓글달기 기능을 추가하기위해서, `context`에 `CommentForm`을 추가한다.
+
+`views/post.py`
+
+```
+def post_list(request):
+	posts = Post.objects.all()
+	context = {
+		'posts':posts,
+		'comment_form':CommentForm(),
+		}
+	return render(request, 'post/post_list.html',context)
+	
+```
+
+: `context`딕셔너리에 `'comment_form' : CommentForm()`를 추가해준다. context 딕셔너리의 키를 변수로 사용할 수 있다. -> `comment_form`
+
+`include/post.html`
+
+```
+중간생략
+<form action="{% url 'post:comment_create' post_pk=post.pk %}" method="POST">
+{% csrf_token %}
+{{ comment_form.content }}
+</form>
+</div>
+
+```
+
+`post.html`에서 댓글달기 기능을 지우고 `form`형식으로 `comment_create.html`로 보내고, `POST`방식을 받아야, 내용을 추가할수 있다. `{{ comment_form.content }}`을 써서 댓글의 내용을 출력할 수 있다.
+
+`post/views/comment.py`
+
+```
+@require_POST
+# POST요청만 받을때 사용하는것이다.
+@login_required
+def comment_create(request,post_pk):
+	post = get_objects_or_404(Post,pk=post_pk)
+	form = CommentForm(request.POST)
+```
+: `URL`에 전달되어온, `post_pk`로 특정 `Post`객체를 가져온다.
+
+`next = request.GET.get('next')`
+
+: `URL`의 `GET인자`의 `next`키에 대한 값을 가져옴, 이걸해주는 이유는 각 `post`에 해당하는 `comment`이기 때문에, 댓글을 달고 리턴할경우, 댓글을 수정한 `post`로 되돌아가는 기능을 구현하기 위해서다.
+
+```
+if form.is_valid():
+# form이 유효할 경우, Comment생성
+	comment = form.save(commit=False)
+	
+```
+
+: `form=CommentForm(request.POST)` : `POST`요청을 받은 `CommentForm`객체가 `form`인데, `CommentForm`에서 `input`요소로 만들어준것은 오직 `comment`객체이다.
+그러므로, `comment = form.save(commit=False)` : `form`객체(CommentForm내제)에서 `save()`메서드를 호출하고, `commit=False`로 데이터베이스에는 저장하지 않고, `comment`라는 객체만을 만든다. 즉 `comment=Comment(comment=?)`하고 비슷한 의미이다. 여기다 `comment`를 생성할때 필요한 `author`과 `content`를 넣어줘야 한다.
+
+```
+comment = form.save(commit=False)
+comment.author = request.user
+comment.post = post
+comment.save()
+```
+: `comment.save()`는 `Comment.objects.create(content=?,author=?,post=?)`와 같다. 
+
+`form`이 유효하지 않을경우, 현재 `request`에 `error메세지`를 추가한다.
+
+```
+else:
+	result = '<br>'.join['<br>'.join(v) for v in form.errors.values()])
+	message.error(request,result)
+```
+
+: `form`이 유효하지 않을경우, `form.errors`가 발생하는 키에 대한 각각의 오류에 대한 모든 값을 `<br>`(줄바꿈) 기준으로 더해주고, 또 더해준다.
+
+`result='<br>'.join['<br>'.join(v) for v in form.errors.values()])`
+
+`messages.error(request,result)`
+
+```
+if next:
+	return redirect(next)
+return redirect('post:post_detail',post_pk=post.pk)
+```
+
+`next`값이 존재할경우, `next=request.GET.get('next')`즉 `next`키에 대한 값의 url로 보낸다. 없을경우, `comment`를 수정한 `post_detail`로 리다이렉트 해준다.
+
+* 오류메세지 표현
+
+`common/base.html`
+
+```
+<body>
+	{% if messages %}
+	<div class="messages">
+		{% for message in messages %}
+		<div>{{ message }}</div>
+		{% endfor %}
+	</div>
+	{% endif %}
+```
+
+`include/post.html`
+
+```
+{% load static %}
+<article class="post">
+<article id="post-{{ post.pk }}" class="post">
+```
+
+`post.html`의 전체 `id`값에 각각의 `post`의 루트가 보이도록 설정해야한다.
+
+: `<article id="post-{{ post.pk }}">` 라는 `id`값을 선언해주면, 각 `post.html`은 `http://127.0.0.1:8000/post/#post-4`라는 값을 가진다. 
+
+`include/post.html`
+
+`<form action="{% url 'post:comment_create' post_pk=post.pk %}?next={{ request.path }}#post-{{ post.pk }}" method = "POST">
+`
+댓글 달기기능의 링크를 바꿔준다. `?next=`를 이용하여 `next`의 키로 사용하고, `next`키는 `?next=`에서 매칭이되고, `?next=`키에 대한 값은 `{{ request.paht }}#post-{{ post.pk }}`와 같다. 여기서 `{{ request.path }}`는 `http://127.0.0.1:8000/post/`이고, 거기다 `#post-{{ post.pk }}`가 이어진다.
+
+![](/Users/mac/projects/images/스크린샷 2017-06-20 오후 7.27.43.png)
+
+`views/comment.py`
+
+```
+@require_POST
+@login_required
+def comment_create(self, post_pk)
+	post = get_objects_or_404(Post,post_pk=post.pk)
+	form = CommentForm(request.POST)
+	next = request.GET.get('next')
+	# next키에 대한 값을 next에 할당
+	# next는 {{ request.path }}#post-
+	# {{ post.pk }}가 될것이다.
+	
+if form.is_valid():
+# form이 유효할 경우, Comment생성
+	comment = form.save(commit=False)
+	comment.author = request.user
+	comment.post = post
+	comment.save()
+	
+else:
+	result='<br>'.join(['<br>'.join(v) for v forms.errors.values()])
+	messages.error(request,result)
+
+if next:
+	return redirect(next)
+	# next는 url
+	
+return redirect('post:post_detail', post_pk=post.pk)
+
+```
+
+* `comment_modify`구현
+
+`post/urls.py`
+
+`url(r'comment/(?P<comment_pk>\d+)/modify/$', views.comment_modify, name='comment_modify')`
+
+: post/comment/3(comment_pk)/modify 키워드 인자를 `<comment_pk>`로 준다.
+
+`views/comment.py`
+
+```
+def comment_modify(request,comment_pk):
+	comment = get_objects_or_404(Comment,pk=comment_pk)
+	form = CommentForm(request.POST,instance=comment)
+	if request.method == 'POST':
+		pass
+	else:
+		form = CommentForm(instance=comment)
+	context = {
+		'form' : form,
+		}
+	return render(request,'post/comment_modify.html',context)
+	
+```
+: 일단 `comment_modify` 최소구현, 수정할 `comment`객체를 `get_objects_or_404(Comment,pk=comment.pk)`로 가져온다.
+
+`include/post_comment.html`
+
+```
+<a href='' class="comment-author">{{ comment.author }}</a>
+<span class="comment-content">{{ comment.content }}</span>
+<a href='' class="comment-tag"></a>
+
+{% if request.user == comment.author %}
+# 현재 요청받은 user가 comment.author과 같을때만 수정하게 만든다.
+
+<a href="{% url 'post:comment_modify' comment_pk=comment.pk %}" class="btn btn-xs">수정</a>
+{% endif %}
+
+```
+
+`templates/post/comment_modify.html`
+
+```
+{% extends 'common/base.html' %}
+
+{% block content %}
+<div class="content">
+	<h3>Comment modify</h3>
+	<form action="" method="post">
+		{% include 'include/field_set.html' %}
+		<button type="submit" class="btn">수정</button>
+		</form>
+	</div>
+{% endblock %{
+
+```
+
+* `comment_owner`데코레이터 생성
+
+`post/decorators.py`
+
+```
+def comment_owner(f):
+	def wrap(request,*args,**kwargs):
+	comment = Comment.objects.get(pk=kwargs['comment_pk])
+	if request.user == comment.author:
+		return f(request,*args,**kwargs)
+	raise PermissionDenied
+return wrap
+```
+
+* `comment_modify`완성
+
+`views/comment.py`
+
+```
+@comment_owner
+@login_required
+def comment_modify(request, comment_pk):
+	 comment = get_objects_or_404(Comment,comment_pk=comment.pk)
+	 next = request.GET.get('next')
+	 # next키에 대한 값을 next에 할당
+	 # comment_modify하고, 다시 post로(원래위치)로 되돌려주는 기능
+	 
+	 if request.method == "POST":
+	 	form = CommentForm(data=request.POST, instance=comment)
+	 	form.save()
+	 	
+```
+
+: `Form`을 이용해 객체를 업데이트 시킨다.(data에 포함된 부분만 update된다.) `CommentForm`을 이용하여 만든 `comment`객체안에 `data=request.POST`의 모든데이터와, `instance=comment`를 다 넣어주고, `form.save()`한다. 이미 `instance`에는 가져온 객체 자체가 만들어진 `comment`가 있고, 가져온 `comment`(수정할 댓글)을 `instance=comment`로 오버라이드 해주고, `request.POST`에는 `post`와 `author`가 들어있기에, 다 넣어서 `form.save()`를 활용해서 오버라이드해준다.
+
+```
+if next:
+	return redirect(next)
+return redirect('post:post_detail', post_pk=comment.post.pk)
+```
+
+: `post_pk=comment.post.pk`로 `comment`의 객체에서 `post`를 불러오고, `post`에서 `pk`를 호출
+
+```
+else:
+	#CommentForm의 기존 comment인스턴스의 내용을 채운 bound Form
+	form = CommentForm(instance=comment)
+	context = {
+		'form':form,
+			}
+		return render(request,'post/comment_modify.html',context)
+		
+```
+
+`get`요청은 어떤 `url`로  보내기위해서 사용한다. `return render(request,'post/comment_modify.html',context)`
+
+* `comment_modify`를 한후 원래위치로 리턴
+
+`include/post_comment.html`
+
+
+```
+{% if request.user = comment.author %}
+<a href="{% url 'post:comment_modify' comment_pk=comment.pk %}?next={{ request.path }}#post-{{ comment.pk }}" class="btn btn-xs">수정</a>
+{% endif %}
+```
+
+![](/Users/mac/projects/images/스크린샷 2017-06-20 오후 8.12.05.png)
+
+`post/comment_modify.html`
+
+```
+{% extends 'common/base.html' %}
+
+{% block content %}
+{% comment %}
+	#template안에서 request.GET의 내용을 쓰는법
+	{{ request.GET.[key] }}
+{% endcomment %}
+
+<div class='content'>
+	<h3>Comment modify</h3>
+	<form action="" method="POST">
+		{% csrf_token %}
+		{% include/field_set.html' %}
+		<button type="submit" class="btn">수정</button>
+	</form>
+```
+
+
+![](/Users/mac/projects/images/스크린샷 2017-06-20 오후 8.15.15.png)
+
+* `comment_delete`구현
+
+`post/urls.py`
+
+```
+ex) post/comment/3/delete
+url(r'comment/(?P<comment_pk>\d+)/delete/$', views.comment_delete, name='comment_delete')
+
+```
+
+`post/views/comment.py`
+
+```
+@comment_owner
+@require_POST
+@login_required
+
+next = request.GET.get('next')
+def comment_delete(request,comment_pk):
+	comment = get_objects_or_404(Comment,pk=comment_pk)
+	post=comment.post
+	comment.delete()
+	if next:
+		return redirect(next)
+	return redirect('post:post_detail',post_pk=post.pk)
+```
+
+: 여기서 중요한것은 `comment_delete`이후에, 원래페이지로 돌아갈수 있도록, `post`객체를 만들어놔야 한다. `post=comment.post`
+
+`templates/include/post_create.html`
+
+```
+<form action="{% url 'post:comment_delete' comment_pk=comment.pk %}?next={{ request.path }}#post-{{ comment.post.pk }]" method="POST">
+	{% csrf_token %}
+	<button type="submit" class="btn btn-xs">삭제</button>
+</form>
+{% endif %}
+```
+: 다시 돌아오는 이유는 `{{ request.path }}`이후로 `#post-{{ comment.post.pk }}`역참조로 `comment에서 post를 참조하고 그 post의 pk로 참조하기 때문이다.`
+
+* hashtag 만들기
+
+`post/models.py`
+
+: `Comment`메서드의 속성에 `tags=models.ManyToManyField('Tag')`로 해서, `Tag`와 `Comment`메서드를 다대다 관계로 맺는다.
+
+
+`tags = models.ManyToManyField('Tag',blank=True)`
+
+```
+def add_tag(self,tag_name):
+
+tag,tag_created = Tag.objects.get_or_create(name=tag_name)
+if not self.tags.filter(id=tag.id).exists():
+	self.tags.add(tag)
+```
+: tags에 tag매개변수로 전달된 값(문자열)을 name으로 갖는 Tag객체를 (이미존재하면)가져오고, 없으면 생성하여, 자신의 tags에 추가한다. 위의 예를 활용하여 `Comment`에서 `save()`메서드를 활용하여 해쉬태그를 만들어야 한다.
+
+`post/models.py`
+
+```
+class Comment(modles.Model):
+	post = models.ForeignKey(Post)
+	author = models.ForeignKey(settings.AUTH_USER_MODEL)
+	content = models.TextField()
+	html_content = models.TextField(blank=True)
+	tags = models.ManyToManyField('Tag')
+	created_data = models.DataTimeField(auto_now_add=True)
+	modified_data = models.DateTimeField(auto_now=True)
+	like_users = models.ManyToManyField(
+		settings.AUTH_USER_MODEL,
+		through='CommentLike',
+		related_name='like_comments',
+		)
+```
+
+`Comment`클래스를 만든다. 추가해야할것은 `html_content = models.TextField(blank=True)`
+`tags=models.ManyToManyField('Tag')` 
+
+`Comment`클래스 안에 `save()`메서드를 실행하여 해쉬태그를 만든다.
+
+```
+import re
+
+def save(self,*args,**kwargs):
+	super().save(*args,**kwargs)
+	self.make_html_content_and_add_tags()
+	
+```
+
+: 여기서 `self`는 `Comment`메서드다. `Comment.속성`으로 실행하는것이다.??
+
+
+
+```
+def make_html_content_and_add_tags(self):
+	p = re.compile(r'(#\w+)')
+	tag_name_list = re.findall(p,self.content)
+	ori_content = self.content
+	for tag_name in tag_name_list:
+	tag,_ = Tag.objects.get_or_create(name=tag_name.replace('#',''))
+	ori_content = ori_content.replace(tag_name,'<a href="#" class="hash-tag">{}</a>'.format(tag_name))
+	
+	if not self.tags.filter(pk=tag.pk).exists():
+		self.tags.add(tag)
+	self.html_content = ori_content
+	
+```
+
+(1) 기존의 self.comment내용을 `#댓글내용`에 url링크를 걸고 싶다.
+
+![](/Users/mac/projects/images/스크린샷 2017-06-20 오후 9.19.39.png)에서 링크가 걸린 해쉬태그를 누르면, 해쉬태그와 일치하는 post를 가져와야 한다. 즉 `해쉬태그링크로 동일한 해쉬태그를 쓴 post의 리스트를 가져와야 한다.`
+
+(2) `Tag`를 사용하여, comment가 담긴 tag를 생성해줘야하는데, 중복되는것을 제외해야한다.
+
+`def make_html_content_and_add_tags(self):`
+
+: `self`는 요청받은 `Comment`객체이다.
+
+`p=re.compile(r'(#\w+)')`
+
+: `#문자열`을 컴파일해서 패턴화하여 `p`에 할당
+
+`tag_name_list = re.findall(p,self.content)`
+
+: `import re`하여, `findall`메서드로 `self.content`에서 p라는 패턴을 찾아 `tag_name_list`에 할당한다.
+
+`ori_content = self.content`
+
+: 요청받은 `comment`객체.content를 원래의 `ori_content = self.content`에 할당한다. 
+
+`for tag_name in tag_name_list:`
+
+:`tag_name_list`에는 해쉬태그의 모음이 있다. 그 모음안에서 `tag_name`을 꺼내서, `tag_name`으로 `태그`를 생성한다.
+
+`tag,_ = Tag.objects.get_or_create(name=tag_name.replace('#',''))`
+
+: tag는 해쉬태그를 없애고, 문자열로 저장해야 하므로, `replace('#','')`로 바꾸고, `tag,_`는 Tag객체를 가져오거나 생성, 생성여부는 신경쓰지 않으므로 변수를 `_`로 처리한다. `Tag.object.get_or_create(name=tag_name.replace('#',''))`로 `tag_name`을 `name`으로 `태그`를 만든다.
+
+`ori_content = ori_content.replace(
+tag_name,'<a href="#" class="hash-tag">{}</a>'.format(tag_name))` : 즉 기존에 해쉬태그와 문자열과 섞여있는 `comment`를 `tag_name`만 링크가 걸린 `tag_name`으로 바꾼다. 즉  `<a href="#" class="hash-tag">{}</a>'.format(tag_name))`
+
+`if not self.tags.filter(pk=tag.pk).exists():
+	self.tags.add(tag)`
+	
+: `content`에 포함된 `Tag`목록을 자신의 `tags`필드에 추가한다. 중복되는것을 제외하기 위해서, `self.tags.filter(pk=tag.pk).exists()`로 이미 존재하는 `pk=tag.pk`값으로 필터링하여, `in not`없다면, `self.tags.add(tag)`를 넣어준다. `tag`는 `Tag.objects.get_or_create()`로 만들어준 인스턴스이고, 그것을 `Comment객체.Comment속성(tags).add(tag)`를 실행하여 넣어준다.
+
+`self.html_content = ori_content`
+
+: 편집이 완료된(모두링크가걸린해쉬태그)를 `self.html_content`는 `Comment객체.html_content(Comment속성)`을 불러와서 할당한다.
+
+`include/post_comment.html`
+
+`<p class="comment-content'>{{ comment.html_content|safe }}</p>
+`
+
+: `|safe`는 중복되지 않도록 `html`을 표시하는 것이다. 
+
+![](/Users/mac/projects/images/스크린샷 2017-06-20 오후 9.48.54.png)
+
+: 즉 이렇게 `comment.content`를 해쉬태그가 걸린 링크로 보여준다.
+
+* `hashtag`로 `post_list`를 검색하는기능
+
+:`hashtag_post_list`를 `post.py`에 만든다. 
+
+* 태그생성 정규표현식 수정
+
+```
+-            ori_content = ori_content.replace(
+ -                tag_name,
+ -                '<a href="#" class="hash-tag">{}</a>'.format(
+ -                    tag_name
+ -                )
+
+ ```
+을 지우고 새롭게 생성
+
+```
+change_tag = '<a href="{url}" class="hash-tag">{}</a>'.format(tag_name)
+
+ori_content = re.sub(r'{}(?![<\w])'.format(tag_name).change_tag,ori_content,count=1)
+
+```
+`re.sub('바뀔문자열','바꿀문자열','source(어디서)')` 
+
+: `re.sub(정규표현식,change_tag,ori_content,count=1)`
+
+정규표현식 `(r'{}(?![\w])` : ??
+
+`post/views/post.py`
+
+: `해쉬태그로 검색했을때의 페이지 구현`
+
+```
+def hashtag_post_list(request,tag_name):
+	tag = get_object_or_404(Tag,name=tag_name)
+	
+	posts = Post.objects.filter(my_comment__tags=tag)
+	post_count = post.count()
+	
+	context = {
+		'tag' : tag,
+		'posts' : posts,
+		'post_count' : posts_count,
+		}
+	return render(request, 'post/hashtag_post_list.html',context)
+```
+
+: 특정 `tag_name`이 해당 `Post`에 포함된 `Comment`의 `tags`에 포함되어 있는 `Post`목록 쿼리를 생성한다.
+
+`tag = get_object_or_404(Tag,name=tag_name)` 특정한 `tag_name`를 `name`에 넣어서 만든 `tag`객체를 가져온다.
+
+`posts=Post.objects.filter(my_comment__tags=tag)` : 역쿼리네임을 활용하여 `Post`에 있는 `my_comment`속성은 `Comment`와 `MTM`관계로 이어져있으므로, 역쿼리네임을 이용하여 `__tags`, 즉 `Comment`객체에 있는 속성을 호출할 수 있다. `my_comment__tags=tag` 가져온 `tag`객체를 넣어준다. `context`딕셔너리에 어떤 태그,posts는 역쿼리네임으로 참조한 포스트, post_counts, post_counts의 숫자를 넣어준다.
+
+```
+def hashtag_post_list(request,tag_name):
+	tag= get_object_or_404(Tag,name=tag_name)
+	posts = Post.objects.filter(my_comment__tags=tag)
+	post_counts = post.count()
+	
+	context = {
+		'tag' : tag,
+		'post_counts':post_counts
+		'posts':posts
+		}
+		
+	return render(request, 'post/hashtag_post_list.html', context)
+	
+```
+
+`post/hashtag_post_list.html`
+
+```
+{% extends 'common/base.html' %}
+
+{% block content %}
+<div class="content">
+	<h3>{{ tag.name }}</h3>
+	<h5>게시물 총 {{ posts_count }]개</h5>
+	
+	<ul class="post_list">
+		{% for post in posts %}
+		<li>
+			<img src="{{ post.photo.url }} alt="" width='33%">
+		</li>
+		{% endfor %}
+	</ul>
+</div>
+{% endblock %}
+
+```
+
+![](/Users/mac/projects/images/스크린샷 2017-06-20 오후 10.17.02.png)
+
+* 정규표현식에서 `change_tag`링크거는부분 변경
+
+`post/models.py`
+
+```
+def make_html_content_and_add_tags(self):
+	tag,_ = Tag.objects.get_or_create(name=tag_name.replace('#','')
+```
+
++
+
+* 수정할 부분
+
+```
+change_tag = '<a href="{url}" class="hash-tag">{tag_name}</a>'.format(url=reverse('post:hastag_post_list', kwargs={'tag_name' : tag_name.replace('#','')}),tag_name=tag_name)
+```
+
+`url=reverse('post:hashtag_post_list', args=[tag_name.replace('#','')]`
+
+: {url}에 들어갈 내용 url = reverse를 써야 urls.py에 있는 패턴을 쓸 수 있다. 어떤 인자로, 보낼것은 위치인자 `args=[]`, `kwargs={}`로 줄수 있다. `args=[tag_name.replace('#','')]`, 위치인자의 이름은 `#`을 빼야하므로 `replace`를 함수를 써주었다. 두번째 들어갈 내용은 {tag_name}이고, `tag_name=tag_name`을 넣어주면된다. 그대로 `tag_name`은 요청받은 `해쉬태그의 이름`이다.
+
+
+
+	 
+	 
 
 
 
@@ -2925,6 +3685,55 @@ def post_delete(request,post_pk):
 
 
 
+
+
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```
+
+
+
+    def save(self,*args,**kwargs):
+        #'박보영 <a href="#">#여신</a>
+        p = re.compile(r'(#\w+)')
+        tag_name_list = re.findall(p,self.content)
+        super().save(*args,**kwargs)
+        
+```
+
+
+```
+문자열 바꾸기(replace)
+
+>>> a = "Life is too short"
+>>> a.replace("Life", "Your leg")
+'Your leg is too short'
+replace(바뀌게 될 문자열, 바꿀 문자열)
+```
 
 
 
